@@ -5,7 +5,7 @@ import 'package:window_manager/window_manager.dart';
 
 import 'screens/notes_screen.dart';
 
-void main() async{
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // 👇 مهم للـ Desktop
@@ -14,8 +14,6 @@ void main() async{
     databaseFactory = databaseFactoryFfi;
   }
 
-
-  
   // 🔥 هذا يغير عنوان النافذة حتماً
   await windowManager.ensureInitialized();
   await windowManager.setTitle('Notes');
@@ -29,6 +27,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Notes',
       debugShowCheckedModeBanner: false,
+      theme: ThemeData(fontFamily: "Cairo"),
       home: NotesScreen(),
     );
   }
