@@ -2,16 +2,43 @@ import 'package:flutter/material.dart';
 import '../db/notes_db.dart';
 import '../models/note_model.dart';
 
-class AddEditNoteScreen extends StatelessWidget {
+class AddEditNoteScreen extends StatefulWidget {
   final Note? note;
+
+  AddEditNoteScreen({this.note});
+
+  @override
+  State<AddEditNoteScreen> createState() => _AddEditNoteScreenState();
+}
+
+class _AddEditNoteScreenState extends State<AddEditNoteScreen> {
   final titleController = TextEditingController();
   final contentController = TextEditingController();
   final db = NotesDB();
 
-  AddEditNoteScreen({this.note}) {
-    if (note != null) {
-      titleController.text = note!.title;
-      contentController.text = note!.content;
+  int selectedPriority = 1;
+
+  @override
+  void initState() {
+    super.initState();
+
+    if (widget.note != null) {
+      titleController.text = widget.note!.title;
+      contentController.text = widget.note!.content ?? '';
+      selectedPriority = widget.note!.priority;
+    }
+  }
+
+  String priorityLabel(int value) {
+    switch (value) {
+      case 1:
+        return 'Normal';
+      case 2:
+        return 'Medium';
+      case 3:
+        return 'High';
+      default:
+        return 'Normal';
     }
   }
 
@@ -19,7 +46,7 @@ class AddEditNoteScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(note == null ? 'Add Note' : 'Edit Note'),
+        title: Text(widget.note == null ? 'Add Note' : 'Edit Note'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
@@ -33,29 +60,57 @@ class AddEditNoteScreen extends StatelessWidget {
               controller: contentController,
               decoration: InputDecoration(labelText: 'Content'),
             ),
+
+            SizedBox(height: 16),
+
+            // 🔽 Priority Dropdown
+            DropdownButtonFormField<int>(
+              value: selectedPriority,
+              decoration: InputDecoration(
+                labelText: 'Priority',
+                border: OutlineInputBorder(),
+              ),
+              items: const [
+                DropdownMenuItem(value: 1, child: Text('Normal')),
+                DropdownMenuItem(value: 2, child: Text('Medium')),
+                DropdownMenuItem(value: 3, child: Text('High')),
+              ],
+              onChanged: (value) {
+                setState(() {
+                  selectedPriority = value!;
+                });
+              },
+            ),
+
             SizedBox(height: 20),
+
             ElevatedButton(
               onPressed: () async {
-                if (note == null) {
+                if (widget.note == null) {
                   await db.insertNote(
                     Note(
                       title: titleController.text,
                       content: contentController.text,
+                      priority: selectedPriority,
+                      createdAt: DateTime.now().toIso8601String(),
                     ),
                   );
                 } else {
                   await db.updateNote(
                     Note(
-                      id: note!.id,
+                      id: widget.note!.id,
                       title: titleController.text,
                       content: contentController.text,
+                      priority: selectedPriority,
+                      createdAt: widget.note!.createdAt, // نخلي التاريخ ثابت
                     ),
                   );
                 }
+
                 Navigator.pop(context);
               },
               child: Text('Save'),
-            )
+            ),
           ],
         ),
       ),

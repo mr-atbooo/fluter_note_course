@@ -16,30 +16,51 @@ class NotesDB {
 
     return await openDatabase(
       path,
-      version: 1,
+      version: 3,
       onCreate: (db, version) async {
         await db.execute('''
-          CREATE TABLE notes (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            title TEXT,
-            content TEXT
-          )
-        ''');
+        CREATE TABLE notes (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          title TEXT,
+          content TEXT,
+          priority INTEGER DEFAULT 1,
+          created_at TEXT,
+          updated_at TEXT
+        )
+      ''');
+      },
+      onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 2) {
+          await db.execute(
+            'ALTER TABLE notes ADD COLUMN priority INTEGER DEFAULT 1',
+          );
+          await db.execute('ALTER TABLE notes ADD COLUMN created_at TEXT');
+        }
+        if (oldVersion < 3) {
+          await db.execute('ALTER TABLE notes ADD COLUMN updated_at TEXT');
+        }
       },
     );
   }
 
-    // 📋 Get All
+  // 📋 Get All
   Future<List<Note>> getNotes() async {
     final db = await database;
-    final result = await db.query('notes');
+    // final result = await db.query('notes');
+
+    final result = await db.query('notes', orderBy: 'priority DESC');
+
     return result.map((e) => Note.fromMap(e)).toList();
   }
 
   // ➕ Insert
   Future<int> insertNote(Note note) async {
     final db = await database;
-    return await db.insert('notes', note.toMap());
+    // return await db.insert('notes', note.toMap());
+    return await db.insert('notes', {
+      ...note.toMap(),
+      'created_at': note.createdAt,
+    });
   }
 
   // ✏️ Update
@@ -47,7 +68,8 @@ class NotesDB {
     final db = await database;
     return await db.update(
       'notes',
-      note.toMap(),
+      // note.toMap(),
+      {...note.toMap(), 'updated_at': DateTime.now().toIso8601String()},
       where: 'id = ?',
       whereArgs: [note.id],
     );
