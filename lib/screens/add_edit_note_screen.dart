@@ -16,6 +16,7 @@ class _AddEditNoteScreenState extends State<AddEditNoteScreen> {
   final contentController = TextEditingController();
   final db = NotesDB();
 
+  DateTime? publishedAt;
   int selectedPriority = 1;
 
   @override
@@ -26,6 +27,7 @@ class _AddEditNoteScreenState extends State<AddEditNoteScreen> {
       titleController.text = widget.note!.title;
       contentController.text = widget.note!.content ?? '';
       selectedPriority = widget.note!.priority;
+      publishedAt = widget.note!.publishedAt;
     }
   }
 
@@ -54,15 +56,21 @@ class _AddEditNoteScreenState extends State<AddEditNoteScreen> {
           children: [
             TextField(
               controller: titleController,
-              decoration: InputDecoration(labelText: 'Title'),
+              decoration: InputDecoration(
+                labelText: 'Title',
+                border: OutlineInputBorder(),
+              ),
             ),
+            SizedBox(height: 15),
             TextField(
               controller: contentController,
-              decoration: InputDecoration(labelText: 'Content'),
+              maxLines: 4, // 👈 عدد الأسطر
+              decoration: InputDecoration(
+                labelText: 'Content',
+                border: OutlineInputBorder(),
+              ),
             ),
-
-            SizedBox(height: 16),
-
+            SizedBox(height: 15),
             // 🔽 Priority Dropdown
             DropdownButtonFormField<int>(
               value: selectedPriority,
@@ -81,6 +89,24 @@ class _AddEditNoteScreenState extends State<AddEditNoteScreen> {
                 });
               },
             ),
+            SizedBox(height: 15),
+            Row(
+              children: [
+                Icon(Icons.schedule),
+                SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    publishedAt == null
+                        ? 'No publish time selected'
+                        : 'Publish at: ${publishedAt!.toLocal()}',
+                  ),
+                ),
+                TextButton(
+                  onPressed: pickPublishDateTime,
+                  child: Text('Choose'),
+                ),
+              ],
+            ),
 
             SizedBox(height: 20),
 
@@ -93,6 +119,7 @@ class _AddEditNoteScreenState extends State<AddEditNoteScreen> {
                       content: contentController.text,
                       priority: selectedPriority,
                       createdAt: DateTime.now().toIso8601String(),
+                       publishedAt: publishedAt,
                     ),
                   );
                 } else {
@@ -103,6 +130,7 @@ class _AddEditNoteScreenState extends State<AddEditNoteScreen> {
                       content: contentController.text,
                       priority: selectedPriority,
                       createdAt: widget.note!.createdAt, // نخلي التاريخ ثابت
+                      publishedAt: publishedAt,
                     ),
                   );
                 }
@@ -115,5 +143,33 @@ class _AddEditNoteScreenState extends State<AddEditNoteScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> pickPublishDateTime() async {
+    final date = await showDatePicker(
+      context: context,
+      initialDate: publishedAt ?? DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime(2100),
+    );
+
+    if (date == null) return;
+
+    final time = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(publishedAt ?? DateTime.now()),
+    );
+
+    if (time == null) return;
+
+    setState(() {
+      publishedAt = DateTime(
+        date.year,
+        date.month,
+        date.day,
+        time.hour,
+        time.minute,
+      );
+    });
   }
 }

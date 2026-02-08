@@ -1,5 +1,6 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+import 'package:path_provider/path_provider.dart';
 import '../models/note_model.dart';
 
 class NotesDB {
@@ -12,7 +13,10 @@ class NotesDB {
   }
 
   Future<Database> initDB() async {
-    String path = join(await getDatabasesPath(), 'notes.db');
+    // String path = join(await getDatabasesPath(), 'notes.db');
+
+    final directory = await getApplicationDocumentsDirectory();
+    final path = join(directory.path, 'my_notes.db');
 
     return await openDatabase(
       path,
@@ -24,22 +28,24 @@ class NotesDB {
           title TEXT,
           content TEXT,
           priority INTEGER DEFAULT 1,
+          published_at TEXT,
+          is_published INTEGER DEFAULT 0,
           created_at TEXT,
           updated_at TEXT
         )
       ''');
       },
-      onUpgrade: (db, oldVersion, newVersion) async {
-        if (oldVersion < 2) {
-          await db.execute(
-            'ALTER TABLE notes ADD COLUMN priority INTEGER DEFAULT 1',
-          );
-          await db.execute('ALTER TABLE notes ADD COLUMN created_at TEXT');
-        }
-        if (oldVersion < 3) {
-          await db.execute('ALTER TABLE notes ADD COLUMN updated_at TEXT');
-        }
-      },
+      // onUpgrade: (db, oldVersion, newVersion) async {
+      //   if (oldVersion < 2) {
+      //     await db.execute(
+      //       'ALTER TABLE notes ADD COLUMN priority INTEGER DEFAULT 1',
+      //     );
+      //     await db.execute('ALTER TABLE notes ADD COLUMN created_at TEXT');
+      //   }
+      //   if (oldVersion < 3) {
+      //     await db.execute('ALTER TABLE notes ADD COLUMN updated_at TEXT');
+      //   }
+      // },
     );
   }
 
@@ -56,6 +62,9 @@ class NotesDB {
   // ➕ Insert
   Future<int> insertNote(Note note) async {
     final db = await database;
+
+    print('Inserting note: ${note.toMap()}');
+
     // return await db.insert('notes', note.toMap());
     return await db.insert('notes', {
       ...note.toMap(),

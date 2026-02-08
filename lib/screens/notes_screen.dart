@@ -196,7 +196,7 @@ class _NotesScreenState extends State<NotesScreen> {
   }
 
   String getDeviceSpecificNoteTitle(Note note) {
-    print(Platform.isLinux);
+    // print(Platform.isLinux);
 
     final screenWidth = MediaQuery.of(context).size.width;
 
