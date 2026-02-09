@@ -5,6 +5,8 @@ class Note {
   int priority;
   DateTime? publishedAt;
   bool isPublished;
+  DateTime? createdAt;
+  DateTime? updatedAt;
 
   Note({
     this.id,
@@ -13,6 +15,8 @@ class Note {
     this.priority = 1,
     this.publishedAt,
     this.isPublished = false,
+    this.createdAt,
+    this.updatedAt,
   });
 
   Map<String, dynamic> toMap() {
@@ -37,7 +41,12 @@ class Note {
           ? DateTime.parse(map['published_at'])
           : null,
       isPublished: map['is_published'] == 1,
-      // ⚠️ لا نقرأ created_at و updated_at إلى الـ Model (لا نحتاجهما في الواجهة)
+      createdAt: map['created_at'] != null
+          ? DateTime.parse(map['created_at'])
+          : DateTime.now(), // افتراضي آمن
+      updatedAt: map['updated_at'] != null
+          ? DateTime.parse(map['updated_at'])
+          : null,
     );
   }
 }

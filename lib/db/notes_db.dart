@@ -54,7 +54,7 @@ class NotesDB {
     final db = await database;
     // final result = await db.query('notes');
 
-    final result = await db.query('notes', orderBy: 'priority DESC');
+    final result = await db.query('notes', orderBy: 'priority DESC, created_at DESC');
 
     return result.map((e) => Note.fromMap(e)).toList();
   }
@@ -62,23 +62,27 @@ class NotesDB {
   // ➕ Insert
   Future<int> insertNote(Note note) async {
     final db = await database;
+    final now = DateTime.now().toIso8601String();
 
     print('Inserting note: ${note.toMap()}');
 
     // return await db.insert('notes', note.toMap());
     return await db.insert('notes', {
       ...note.toMap(),
-      'created_at': note.createdAt,
+      'created_at': now, // ✅ يُضاف تلقائياً
+      'updated_at': now, // ✅ يمكن إضافته هنا أيضاً كقيمة أولية
     });
   }
 
   // ✏️ Update
   Future<int> updateNote(Note note) async {
     final db = await database;
+    final now = DateTime.now().toIso8601String();
+
     return await db.update(
       'notes',
       // note.toMap(),
-      {...note.toMap(), 'updated_at': DateTime.now().toIso8601String()},
+      {...note.toMap(), 'updated_at': now},
       where: 'id = ?',
       whereArgs: [note.id],
     );
@@ -89,4 +93,30 @@ class NotesDB {
     final db = await database;
     return await db.delete('notes', where: 'id = ?', whereArgs: [id]);
   }
+
+
+Future<List<Map<String, dynamic>>> getDueNotifications(
+    String nowIso) async {
+  final db = await database;
+
+  return await db.rawQuery('''
+    SELECT * FROM notes
+    WHERE published_at IS NOT NULL
+    AND published_at <= ?
+    AND is_published = 0
+  ''', [nowIso]);
+}
+
+Future<void> markAsNotified(int id) async {
+  final db = await database;
+  await db.update(
+    'notes',
+    {'is_published': 1},
+    where: 'id = ?',
+    whereArgs: [id],
+  );
+}
+
+
+
 }

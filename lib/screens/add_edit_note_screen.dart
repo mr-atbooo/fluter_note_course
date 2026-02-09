@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../db/notes_db.dart';
 import '../models/note_model.dart';
+// import '../services/sound_service.dart';
 
 class AddEditNoteScreen extends StatefulWidget {
   final Note? note;
@@ -118,8 +119,7 @@ class _AddEditNoteScreenState extends State<AddEditNoteScreen> {
                       title: titleController.text,
                       content: contentController.text,
                       priority: selectedPriority,
-                      createdAt: DateTime.now().toIso8601String(),
-                       publishedAt: publishedAt,
+                      publishedAt: publishedAt,
                     ),
                   );
                 } else {
@@ -129,7 +129,6 @@ class _AddEditNoteScreenState extends State<AddEditNoteScreen> {
                       title: titleController.text,
                       content: contentController.text,
                       priority: selectedPriority,
-                      createdAt: widget.note!.createdAt, // نخلي التاريخ ثابت
                       publishedAt: publishedAt,
                     ),
                   );
@@ -139,6 +138,13 @@ class _AddEditNoteScreenState extends State<AddEditNoteScreen> {
               },
               child: Text('Save'),
             ),
+
+            //             ElevatedButton(
+            //   onPressed: () async {
+            //     await SoundService.playLinux('ding.wav');
+            //   },
+            //   child: const Text('🔊 Test Sound'),
+            // ),
           ],
         ),
       ),

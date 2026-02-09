@@ -59,6 +59,8 @@ class _NotesScreenState extends State<NotesScreen> {
         itemCount: notes.length,
         itemBuilder: (context, index) {
           final note = notes[index];
+
+      // print('Displaying note: ${note.updatedAt}');
           return Card(
             elevation: 2,
             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -103,7 +105,7 @@ class _NotesScreenState extends State<NotesScreen> {
                   const SizedBox(height: 8),
                   if (note.createdAt != null)
                     Text(
-                      _formatDate(DateTime.parse(note.createdAt)),
+                      _formatDate(note.createdAt!),
                       style: TextStyle(fontSize: 12, color: Colors.grey[500]),
                     ),
                 ],
@@ -146,8 +148,8 @@ class _NotesScreenState extends State<NotesScreen> {
     }
   }
 
-  String formatDateTimeExactly(String dateString) {
-    final dateTime = DateTime.parse(dateString);
+  String formatDateTimeExactly(DateTime dateTime) {
+    // final dateTime = DateTime.parse(dateString);
     return DateFormat('yyyy/MM/dd - hh:mm:ss a').format(dateTime);
     // hh صغيرة = 12 ساعة
     // HH كبيرة = 24 ساعة
@@ -202,14 +204,14 @@ class _NotesScreenState extends State<NotesScreen> {
 
     if (kIsWeb) {
       // إذا كان تطبيق ويب
-      return '${note.title} (${formatDateTimeExactly(note.createdAt)})';
+      return '${note.title} (${formatDateTimeExactly(note.createdAt!)})';
     } else if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
       if (screenWidth < 600) {
         // تابلت: بدون التاريخ
         return note.title;
       } else {
         // إذا كان ديسكتوب
-        return '${note.title} (${formatDateTimeExactly(note.createdAt)})';
+        return '${note.title} (${formatDateTimeExactly(note.createdAt!)})';
       }
     } else {
       // إذا كان موبايل (Android, iOS)
