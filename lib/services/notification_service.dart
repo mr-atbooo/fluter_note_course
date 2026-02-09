@@ -22,7 +22,8 @@ class NotificationService {
       ),
     );
 
-await SoundService.playLinux('ding.wav');
+// await SoundService.playLinux('ding.wav');
+ SoundService.startRepeating('ding.wav');
 
   }
 }

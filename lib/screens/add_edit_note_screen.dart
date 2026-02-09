@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../db/notes_db.dart';
 import '../models/note_model.dart';
-// import '../services/sound_service.dart';
+import '../services/sound_service.dart';
 
 class AddEditNoteScreen extends StatefulWidget {
   final Note? note;
@@ -23,6 +23,7 @@ class _AddEditNoteScreenState extends State<AddEditNoteScreen> {
   @override
   void initState() {
     super.initState();
+    SoundService.stop();
 
     if (widget.note != null) {
       titleController.text = widget.note!.title;
