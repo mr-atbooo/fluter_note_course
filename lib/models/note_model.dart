@@ -1,12 +1,22 @@
 class Note {
   int? id;
   String title;
-  String content;
+  String? content;
+  int priority;
+  DateTime? publishedAt;
+  bool isPublished;
+  DateTime? createdAt;
+  DateTime? updatedAt;
 
   Note({
     this.id,
     required this.title,
-    required this.content,
+    this.content,
+    this.priority = 1,
+    this.publishedAt,
+    this.isPublished = false,
+    this.createdAt,
+    this.updatedAt,
   });
 
   Map<String, dynamic> toMap() {
@@ -14,6 +24,10 @@ class Note {
       'id': id,
       'title': title,
       'content': content,
+      'priority': priority,
+      'published_at': publishedAt?.toIso8601String(),
+      'is_published': isPublished ? 1 : 0,
+      // ⚠️ لا ندرج created_at و updated_at هنا - سيُضافان تلقائياً في الـ DB
     };
   }
 
@@ -22,6 +36,68 @@ class Note {
       id: map['id'],
       title: map['title'],
       content: map['content'],
+      priority: map['priority'] ?? 1,
+      publishedAt: map['published_at'] != null
+          ? DateTime.parse(map['published_at'])
+          : null,
+      isPublished: map['is_published'] == 1,
+      createdAt: map['created_at'] != null
+          ? DateTime.parse(map['created_at'])
+          : DateTime.now(), // افتراضي آمن
+      updatedAt: map['updated_at'] != null
+          ? DateTime.parse(map['updated_at'])
+          : null,
     );
   }
 }
+
+// class Note {
+//   int? id;
+//   String title;
+//   String? content;
+//   int priority;
+//   DateTime? publishedAt; // 👈 الحقل الجديد
+//   bool isPublished;
+//   DateTime createdAt;
+//   DateTime? updatedAt;
+
+//   Note({
+//     this.id,
+//     required this.title,
+//     this.content,
+//     this.priority = 1,
+//     this.publishedAt,
+//     this.isPublished = false,
+//     required this.createdAt,
+//     this.updatedAt,
+//   });
+
+//   Map<String, dynamic> toMap() {
+//     return {
+//       'id': id,
+//       'title': title,
+//       'content': content,
+//       'priority': priority,
+//       // 'published_at': publishedAt,
+//       'published_at': publishedAt?.toIso8601String(),
+//       'is_published': isPublished ? 1 : 0,
+//       'created_at': createdAt,
+//       'updated_at': updatedAt,
+//     };
+//   }
+
+//   factory Note.fromMap(Map<String, dynamic> map) {
+//     return Note(
+//       id: map['id'],
+//       title: map['title'],
+//       content: map['content'],
+//       priority: map['priority'] ?? 1,
+//       publishedAt: map['published_at'] != null
+//           ? DateTime.parse(map['published_at'])
+//           : null,
+//       isPublished: map['is_published'] == 1,
+//       createdAt: map['created_at'] ?? '',
+//       updatedAt: map['updated_at'],
+//     );
+//   }
+// }
