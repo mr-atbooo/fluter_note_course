@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../db/notes_db.dart';
 import '../models/note_model.dart';
-// import '../services/sound_service.dart';
+import '../services/sound_service.dart';
+import '../main.dart';
 
 class AddEditNoteScreen extends StatefulWidget {
   final Note? note;
@@ -20,9 +22,14 @@ class _AddEditNoteScreenState extends State<AddEditNoteScreen> {
   DateTime? publishedAt;
   int selectedPriority = 1;
 
+  /// 🔔 Notifications instance
+  // final FlutterLocalNotificationsPlugin notifications =
+  //     FlutterLocalNotificationsPlugin();
+
   @override
   void initState() {
     super.initState();
+    SoundService.stop();
 
     if (widget.note != null) {
       titleController.text = widget.note!.title;
@@ -137,6 +144,27 @@ class _AddEditNoteScreenState extends State<AddEditNoteScreen> {
                 Navigator.pop(context);
               },
               child: Text('Save'),
+            ),
+
+            ElevatedButton(
+              onPressed: () {
+                notifications.show(
+                  id: DateTime.now().millisecondsSinceEpoch.remainder(100000),
+                  title: 'Test Notification',
+                  body: 'If you see this, notifications work',
+                  notificationDetails: NotificationDetails(
+                    android: AndroidNotificationDetails(
+                      'test_channel',
+                      'Test',
+                      channelDescription: 'Test notifications',
+                      importance: Importance.max,
+                      priority: Priority.high,
+                      playSound: true,
+                    ),
+                  ),
+                );
+              },
+              child: const Text('Test Notification'),
             ),
 
             //             ElevatedButton(

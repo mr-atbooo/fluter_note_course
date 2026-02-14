@@ -44,7 +44,17 @@ class _NotesScreenState extends State<NotesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Notes')),
+      appBar: AppBar(
+        title: Text('Notes'),
+        actions: [
+          IconButton(
+            onPressed: () {
+              print('Search button pressed');
+            },
+            icon: Icon(Icons.search),
+          ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add),
         onPressed: () async {
@@ -60,7 +70,7 @@ class _NotesScreenState extends State<NotesScreen> {
         itemBuilder: (context, index) {
           final note = notes[index];
 
-      // print('Displaying note: ${note.updatedAt}');
+          // print('Displaying note: ${note.updatedAt}');
           return Card(
             elevation: 2,
             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
