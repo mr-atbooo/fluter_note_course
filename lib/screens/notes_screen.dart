@@ -18,6 +18,12 @@ class NotesScreen extends StatefulWidget {
 class _NotesScreenState extends State<NotesScreen> {
   final db = NotesDB();
   List<Note> notes = [];
+  List<Note> filteredNotes = [];
+
+  bool showSearchBox = false;
+
+  DateTime? fromDate;
+  DateTime? toDate;
 
   // void loadNotes() async {
   //   notes = await db.getNotes();
@@ -26,13 +32,52 @@ class _NotesScreenState extends State<NotesScreen> {
 
   void loadNotes() async {
     notes = await db.getNotes();
+    // notes = await db.getTodayNotes();
 
     notes.sort((a, b) {
       return b.priority.compareTo(a.priority);
     });
 
-    // filteredNotes = notes;
+    filteredNotes = notes;
     setState(() {});
+  }
+
+  Future<void> loadByRange(DateTime from, DateTime to) async {
+    filteredNotes = await db.getNotesByDateRange(from: from, to: to);
+    setState(() {});
+  }
+
+  void filterToday() {
+    final now = DateTime.now();
+    final start = DateTime(now.year, now.month, now.day);
+    final end = DateTime(now.year, now.month, now.day, 23, 59, 59);
+
+    loadByRange(start, end);
+  }
+
+  void filterThisWeek() {
+    final now = DateTime.now();
+    final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
+    final start = DateTime(
+      startOfWeek.year,
+      startOfWeek.month,
+      startOfWeek.day,
+    );
+
+    final end = start.add(
+      Duration(days: 6, hours: 23, minutes: 59, seconds: 59),
+    );
+
+    loadByRange(start, end);
+  }
+
+  void filterThisMonth() {
+    final now = DateTime.now();
+    final start = DateTime(now.year, now.month, 1);
+
+    final end = DateTime(now.year, now.month + 1, 0, 23, 59, 59);
+
+    loadByRange(start, end);
   }
 
   @override
@@ -49,7 +94,9 @@ class _NotesScreenState extends State<NotesScreen> {
         actions: [
           IconButton(
             onPressed: () {
-              print('Search button pressed');
+              setState(() {
+                showSearchBox = !showSearchBox;
+              });
             },
             icon: Icon(Icons.search),
           ),
@@ -65,83 +112,185 @@ class _NotesScreenState extends State<NotesScreen> {
           loadNotes();
         },
       ),
-      body: ListView.builder(
-        itemCount: notes.length,
-        itemBuilder: (context, index) {
-          final note = notes[index];
+      body: Column(
+        children: [
+          _buildQuickFilters(),
+          if (showSearchBox) _buildSearchBox(),
+          Expanded(
+            child: ListView.builder(
+              itemCount: filteredNotes.length,
+              itemBuilder: (context, index) {
+                final note = filteredNotes[index];
 
-          // print('Displaying note: ${note.updatedAt}');
-          return Card(
-            elevation: 2,
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: ListTile(
-              contentPadding: const EdgeInsets.all(16),
-              tileColor: _getNoteColor(note),
-              // tileColor: Colors.grey[200],
-              leading: CircleAvatar(
-                backgroundColor: Colors.blue[100],
-                child: note.priority == 3
-                    ? Icon(
-                        Icons.local_fire_department,
-                        color: Colors.red[700],
-                        size: 20,
-                      )
-                    : Icon(Icons.note, color: Colors.blue[700], size: 20),
-              ),
-              title: Text(
-                getDeviceSpecificNoteTitle(note),
-                // '${note.title} (${formatDateTimeExactly(note.createdAt)})',
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              // subtitle: Text(note.content ?? ''),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 4),
-                  Text(
-                    note.content ?? '',
-                    style: TextStyle(color: Colors.grey[600], fontSize: 14),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
+                // print('Displaying note: ${note.updatedAt}');
+                return Card(
+                  elevation: 2,
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
                   ),
-                  const SizedBox(height: 8),
-                  if (note.createdAt != null)
-                    Text(
-                      _formatDate(note.createdAt!),
-                      style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.all(16),
+                    tileColor: _getNoteColor(note),
+                    // tileColor: Colors.grey[200],
+                    leading: CircleAvatar(
+                      backgroundColor: Colors.blue[100],
+                      child: note.priority == 3
+                          ? Icon(
+                              Icons.local_fire_department,
+                              color: Colors.red[700],
+                              size: 20,
+                            )
+                          : Icon(Icons.note, color: Colors.blue[700], size: 20),
                     ),
-                ],
-              ),
-              trailing: IconButton(
-                icon: Icon(Icons.delete, color: Colors.red),
-                onPressed: () async {
-                  await db.deleteNote(note.id!);
-                  loadNotes();
-                },
-              ),
-              onTap: () async {
-                await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => AddEditNoteScreen(note: note),
+                    title: Text(
+                      getDeviceSpecificNoteTitle(note),
+                      // '${note.title} (${formatDateTimeExactly(note.createdAt)})',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    // subtitle: Text(note.content ?? ''),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 4),
+                        Text(
+                          note.content ?? '',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 14,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 8),
+                        if (note.createdAt != null)
+                          Text(
+                            _formatDate(note.createdAt!),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[500],
+                            ),
+                          ),
+                      ],
+                    ),
+                    trailing: IconButton(
+                      icon: Icon(Icons.delete, color: Colors.red),
+                      onPressed: () async {
+                        await db.deleteNote(note.id!);
+                        loadNotes();
+                      },
+                    ),
+                    onTap: () async {
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => AddEditNoteScreen(note: note),
+                        ),
+                      );
+                      loadNotes();
+                    },
                   ),
                 );
-                loadNotes();
               },
             ),
-          );
-        },
+          ),
+        ],
       ),
     );
   }
+
+  /************* st search bod data***************/
+
+  Widget _buildSearchBox() {
+    return Padding(
+      padding: const EdgeInsets.all(12),
+      child: Row(
+        children: [
+          Expanded(
+            child: ElevatedButton(
+              onPressed: () async {
+                fromDate = await _pickDate();
+                setState(() {});
+              },
+              child: Text(
+                fromDate == null
+                    ? 'من تاريخ'
+                    : DateFormat('yyyy/MM/dd').format(fromDate!),
+              ),
+            ),
+          ),
+          SizedBox(width: 8),
+          Expanded(
+            child: ElevatedButton(
+              onPressed: () async {
+                toDate = await _pickDate();
+                setState(() {});
+              },
+              child: Text(
+                toDate == null
+                    ? 'إلى تاريخ'
+                    : DateFormat('yyyy/MM/dd').format(toDate!),
+              ),
+            ),
+          ),
+          IconButton(icon: Icon(Icons.check), onPressed: _applyDateFilter),
+        ],
+      ),
+    );
+  }
+
+  Future<DateTime?> _pickDate() async {
+    return await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+  }
+
+  void _applyDateFilter() {
+    if (fromDate == null || toDate == null) return;
+
+    filteredNotes = notes.where((note) {
+      if (note.publishedAt == null) return false;
+
+      final date = note.publishedAt!;
+      return date.isAfter(fromDate!.subtract(Duration(days: 1))) &&
+          date.isBefore(toDate!.add(Duration(days: 1)));
+    }).toList();
+
+    setState(() {});
+  }
+
+  /************* nd search bod data***************/
+  /************* st Quick search data***************/
+  Widget _buildQuickFilters() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          ElevatedButton(onPressed: filterToday, child: Text('اليوم')),
+          ElevatedButton(onPressed: filterThisWeek, child: Text('هذا الأسبوع')),
+          ElevatedButton(onPressed: filterThisMonth, child: Text('هذا الشهر')),
+          ElevatedButton(
+            onPressed: loadNotes, // يرجع الطبيعي
+            child: Text('الكل'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /************* nd Quick search data***************/
 
   String _formatDate(DateTime date) {
     final now = DateTime.now();
@@ -214,14 +363,14 @@ class _NotesScreenState extends State<NotesScreen> {
 
     if (kIsWeb) {
       // إذا كان تطبيق ويب
-      return '${note.title} (${formatDateTimeExactly(note.createdAt!)})';
+      return '${note.title} (${formatDateTimeExactly(note.publishedAt!)})';
     } else if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
       if (screenWidth < 600) {
         // تابلت: بدون التاريخ
         return note.title;
       } else {
         // إذا كان ديسكتوب
-        return '${note.title} (${formatDateTimeExactly(note.createdAt!)})';
+        return '${note.title} (${formatDateTimeExactly(note.publishedAt!)})';
       }
     } else {
       // إذا كان موبايل (Android, iOS)
