@@ -146,26 +146,26 @@ class _AddEditNoteScreenState extends State<AddEditNoteScreen> {
               child: Text('Save'),
             ),
 
-            ElevatedButton(
-              onPressed: () {
-                notifications.show(
-                  id: DateTime.now().millisecondsSinceEpoch.remainder(100000),
-                  title: 'Test Notification',
-                  body: 'If you see this, notifications work',
-                  notificationDetails: NotificationDetails(
-                    android: AndroidNotificationDetails(
-                      'test_channel',
-                      'Test',
-                      channelDescription: 'Test notifications',
-                      importance: Importance.max,
-                      priority: Priority.high,
-                      playSound: true,
-                    ),
-                  ),
-                );
-              },
-              child: const Text('Test Notification'),
-            ),
+            // ElevatedButton(
+            //   onPressed: () {
+            //     notifications.show(
+            //       id: DateTime.now().millisecondsSinceEpoch.remainder(100000),
+            //       title: 'Test Notification',
+            //       body: 'If you see this, notifications work',
+            //       notificationDetails: NotificationDetails(
+            //         android: AndroidNotificationDetails(
+            //           'test_channel',
+            //           'Test',
+            //           channelDescription: 'Test notifications',
+            //           importance: Importance.max,
+            //           priority: Priority.high,
+            //           playSound: true,
+            //         ),
+            //       ),
+            //     );
+            //   },
+            //   child: const Text('Test Notification'),
+            // ),
 
             //             ElevatedButton(
             //   onPressed: () async {
@@ -183,7 +183,8 @@ class _AddEditNoteScreenState extends State<AddEditNoteScreen> {
     final date = await showDatePicker(
       context: context,
       initialDate: publishedAt ?? DateTime.now(),
-      firstDate: DateTime.now(),
+      // firstDate: DateTime.now(),
+      firstDate: DateTime(2000),
       lastDate: DateTime(2100),
     );
 

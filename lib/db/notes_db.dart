@@ -54,7 +54,58 @@ class NotesDB {
     final db = await database;
     // final result = await db.query('notes');
 
-    final result = await db.query('notes', orderBy: 'priority DESC, created_at DESC');
+    final result = await db.query(
+      'notes',
+      orderBy: 'priority DESC, created_at DESC',
+    );
+
+    return result.map((e) => Note.fromMap(e)).toList();
+  }
+
+  Future<List<Note>> getTodayNotes() async {
+    final db = await database;
+
+    final today = DateTime.now();
+    final startOfDay = DateTime(today.year, today.month, today.day);
+    final endOfDay = DateTime(today.year, today.month, today.day, 23, 59, 59);
+
+    final result = await db.query(
+      'notes',
+      // where: 'published_at BETWEEN ? AND ?',
+      where: '(published_at BETWEEN ? AND ?) OR published_at IS NULL',
+
+      whereArgs: [startOfDay.toIso8601String(), endOfDay.toIso8601String()],
+      orderBy: 'priority DESC, created_at DESC',
+    );
+
+    return result.map((e) => Note.fromMap(e)).toList();
+  }
+
+  Future<List<Note>> getNotesByDateRange({
+    DateTime? from,
+    DateTime? to,
+    bool includeDaily = true,
+  }) async {
+    final db = await database;
+
+    String whereClause = '';
+    List<dynamic> whereArgs = [];
+
+    if (from != null && to != null) {
+      whereClause = 'published_at BETWEEN ? AND ?';
+      whereArgs = [from.toIso8601String(), to.toIso8601String()];
+
+      if (includeDaily) {
+        whereClause = '($whereClause) OR published_at IS NULL';
+      }
+    }
+
+    final result = await db.query(
+      'notes',
+      where: whereClause.isEmpty ? null : whereClause,
+      whereArgs: whereArgs.isEmpty ? null : whereArgs,
+      orderBy: 'priority DESC, created_at DESC',
+    );
 
     return result.map((e) => Note.fromMap(e)).toList();
   }
@@ -94,29 +145,27 @@ class NotesDB {
     return await db.delete('notes', where: 'id = ?', whereArgs: [id]);
   }
 
+  Future<List<Map<String, dynamic>>> getDueNotifications(String nowIso) async {
+    final db = await database;
 
-Future<List<Map<String, dynamic>>> getDueNotifications(
-    String nowIso) async {
-  final db = await database;
-
-  return await db.rawQuery('''
+    return await db.rawQuery(
+      '''
     SELECT * FROM notes
     WHERE published_at IS NOT NULL
     AND published_at <= ?
     AND is_published = 0
-  ''', [nowIso]);
-}
+  ''',
+      [nowIso],
+    );
+  }
 
-Future<void> markAsNotified(int id) async {
-  final db = await database;
-  await db.update(
-    'notes',
-    {'is_published': 1},
-    where: 'id = ?',
-    whereArgs: [id],
-  );
-}
-
-
-
+  Future<void> markAsNotified(int id) async {
+    final db = await database;
+    await db.update(
+      'notes',
+      {'is_published': 1},
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
 }
