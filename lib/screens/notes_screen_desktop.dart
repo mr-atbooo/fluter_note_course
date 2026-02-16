@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:window_manager/window_manager.dart'; // إضافة هذا الـ import
+
+import '../main.dart'; // إضافة هذا الـ import للوصول إلى windowTitleController
+
 import 'add_edit_note_screen.dart';
 import 'notes_screen_base.dart';
 
@@ -9,6 +13,22 @@ class NotesScreenDesktop extends StatefulWidget {
 
 class _NotesScreenDesktopState extends NotesScreenBase<NotesScreenDesktop> {
   String selectedSidebarItem = 'All Notes';
+
+  @override
+  void initState() {
+    super.initState();
+    // تحديث عنوان النافذة عند البداية
+    _updateWindowTitle(selectedSidebarItem);
+  }
+
+  // دالة لتحديث عنوان النافذة
+  void _updateWindowTitle(String title) {
+    if (isDesktop) {
+      // الترجمة حسب اللغة
+      // String englishTitle = _getEnglishTitle(title);
+      windowTitleController.add(title);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,6 +59,7 @@ class _NotesScreenDesktopState extends NotesScreenBase<NotesScreenDesktop> {
                   count: totalCount,
                   onTap: () {
                     setState(() => selectedSidebarItem = 'All Notes');
+                    _updateWindowTitle('All Notes'); // تحديث العنوان
                     loadNotes();
                   },
                 ),
@@ -48,6 +69,7 @@ class _NotesScreenDesktopState extends NotesScreenBase<NotesScreenDesktop> {
                   count: todayCount,
                   onTap: () {
                     setState(() => selectedSidebarItem = 'Today');
+                    _updateWindowTitle('Today'); // تحديث العنوان
                     filterToday();
                   },
                 ),
@@ -57,6 +79,7 @@ class _NotesScreenDesktopState extends NotesScreenBase<NotesScreenDesktop> {
                   count: thisWeekCount,
                   onTap: () {
                     setState(() => selectedSidebarItem = 'This Week');
+                    _updateWindowTitle('This Week'); // تحديث العنوان
                     filterThisWeek();
                   },
                 ),
@@ -66,6 +89,7 @@ class _NotesScreenDesktopState extends NotesScreenBase<NotesScreenDesktop> {
                   count: thisMonthCount,
                   onTap: () {
                     setState(() => selectedSidebarItem = 'This Month');
+                    _updateWindowTitle('This Month'); // تحديث العنوان
                     filterThisMonth();
                   },
                 ),
@@ -75,6 +99,7 @@ class _NotesScreenDesktopState extends NotesScreenBase<NotesScreenDesktop> {
                   count: importantCount,
                   onTap: () {
                     setState(() => selectedSidebarItem = 'Important');
+                    _updateWindowTitle('Important'); // تحديث العنوان
                     filterImportant();
                   },
                 ),
@@ -84,6 +109,7 @@ class _NotesScreenDesktopState extends NotesScreenBase<NotesScreenDesktop> {
                   count: recurringCount,
                   onTap: () {
                     setState(() => selectedSidebarItem = 'Recurring');
+                    _updateWindowTitle('Recurring'); // تحديث العنوان
                     filterRecurring();
                   },
                 ),
@@ -93,6 +119,7 @@ class _NotesScreenDesktopState extends NotesScreenBase<NotesScreenDesktop> {
                   count: trashCount,
                   onTap: () {
                     setState(() => selectedSidebarItem = 'Trash');
+                    _updateWindowTitle('Trash'); // تحديث العنوان
                     filterTrash();
                   },
                 ),

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'dart:async'; // لإدارة StreamController
 
 import 'services/notification_scheduler.dart';
 import 'screens/notes_screen.dart';
@@ -25,6 +26,9 @@ const AndroidNotificationChannel androidChannel = AndroidNotificationChannel(
   sound: RawResourceAndroidNotificationSound('ding'),
 );
 
+/// Stream لتغيير عنوان النافذة
+final windowTitleController = StreamController<String>.broadcast();
+
 /// 🔔 Init notifications (Desktop + Mobile)
 Future<void> initNotifications() async {
   const initializationSettings = InitializationSettings(
@@ -44,7 +48,8 @@ Future<void> initNotifications() async {
   if (Platform.isAndroid) {
     await notifications
         .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
+          AndroidFlutterLocalNotificationsPlugin
+        >()
         ?.createNotificationChannel(androidChannel);
   }
 }
@@ -58,7 +63,14 @@ void main() async {
     databaseFactory = databaseFactoryFfi;
 
     await windowManager.ensureInitialized();
-    await windowManager.setTitle('Notes');
+    // await windowManager.setTitle('Notes');
+    // تعيين العنوان الافتراضي
+    await windowManager.setTitle('Notes - All Notes');
+
+    // الاستماع لتغييرات العنوان
+    windowTitleController.stream.listen((title) {
+      windowManager.setTitle('Notes - $title');
+    });
   }
 
   /// 🔔 Notifications (كل المنصات)
