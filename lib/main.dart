@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'dart:async'; // لإدارة StreamController
 
 import 'services/notification_scheduler.dart';
 import 'screens/notes_screen.dart';
@@ -25,6 +26,9 @@ const AndroidNotificationChannel androidChannel = AndroidNotificationChannel(
   sound: RawResourceAndroidNotificationSound('ding'),
 );
 
+/// Stream لتغيير عنوان النافذة
+final windowTitleController = StreamController<String>.broadcast();
+
 /// 🔔 Init notifications (Desktop + Mobile)
 Future<void> initNotifications() async {
   const initializationSettings = InitializationSettings(
@@ -44,7 +48,8 @@ Future<void> initNotifications() async {
   if (Platform.isAndroid) {
     await notifications
         .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
+          AndroidFlutterLocalNotificationsPlugin
+        >()
         ?.createNotificationChannel(androidChannel);
   }
 }
@@ -58,7 +63,46 @@ void main() async {
     databaseFactory = databaseFactoryFfi;
 
     await windowManager.ensureInitialized();
-    await windowManager.setTitle('Notes');
+
+    // ✅ الطريقة الصحيحة: استخدام WindowOptions
+    WindowOptions windowOptions = WindowOptions(
+      size: const Size(1200, 800),
+      minimumSize: const Size(900, 600),
+      maximumSize: const Size(1920, 1080), // اختياري
+      center: true,
+      backgroundColor: Colors.transparent,
+      skipTaskbar: false,
+      titleBarStyle: TitleBarStyle.normal,
+      title: 'Notes - All Notes',
+      // resizable: true, // مهم: يسمح بتغيير الحجم لكن ضمن الحدود
+      // minimizable: true,
+      // maximizable: true,
+      alwaysOnTop: false,
+    );
+
+    // await windowManager.setTitle('Notes');
+    // تعيين العنوان الافتراضي
+    await windowManager.setTitle('Notes - All Notes');
+
+    await windowManager.waitUntilReadyToShow(windowOptions, () async {
+      await windowManager.show();
+      await windowManager.focus();
+    });
+
+    // ✅ تأكيد إضافي للحد الأدنى (لأن بعض أنظمة لينكس بتتجاهل الإعدادات)
+    await windowManager.setMinimumSize(const Size(900, 600));
+
+    // ✅ للينكس تحديداً: إعادة تعيين الحدود
+    if (Platform.isLinux) {
+      // بعض مديري النوافذ في لينكس محتاجين تأكيد إضافي
+      await Future.delayed(const Duration(milliseconds: 500));
+      await windowManager.setMinimumSize(const Size(900, 600));
+    }
+
+    // الاستماع لتغييرات العنوان
+    windowTitleController.stream.listen((title) {
+      windowManager.setTitle('Notes - $title');
+    });
   }
 
   /// 🔔 Notifications (كل المنصات)
