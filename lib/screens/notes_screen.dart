@@ -4,6 +4,9 @@ import 'notes_screen_desktop.dart';
 import 'notes_screen_mobile.dart';
 
 class NotesScreen extends StatefulWidget {
+  final VoidCallback toggleTheme;
+
+  const NotesScreen({required this.toggleTheme});
   @override
   State<NotesScreen> createState() => _NotesScreenState();
 }
@@ -15,9 +18,9 @@ class _NotesScreenState extends State<NotesScreen> {
 
     // فصل كامل بين التصميمين
     if (width >= 900) {
-      return NotesScreenDesktop();
+      return NotesScreenDesktop(toggleTheme: widget.toggleTheme);
     } else {
-      return NotesScreenMobile();
+      return NotesScreenMobile(toggleTheme: widget.toggleTheme);
     }
   }
 }

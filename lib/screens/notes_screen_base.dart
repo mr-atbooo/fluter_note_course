@@ -1,6 +1,6 @@
-import 'package:fluter_note_course/services/filter_service.dart';
+import '../services/date_time_services.dart';
+import '../services/filter_service.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 import '../db/notes_db.dart';
 import '../models/note_model.dart';
@@ -136,40 +136,11 @@ abstract class NotesScreenBase<T extends StatefulWidget> extends State<T> {
     if (mounted) setState(() {});
   }
 
-  String _formatDate(DateTime date) {
-    final now = DateTime.now();
-    final difference = now.difference(date);
-
-    if (difference.inMinutes < 60) {
-      return 'منذ ${difference.inMinutes} دقيقة';
-    } else if (difference.inHours < 24) {
-      return 'منذ ${difference.inHours} ساعة';
-    } else if (difference.inDays < 7) {
-      return 'منذ ${difference.inDays} يوم';
-    } else {
-      return DateFormat('yyyy/MM/dd').format(date);
-    }
-  }
-
-  String formatDateTimeExactly(DateTime dateTime) {
-    return DateFormat('yyyy/MM/dd - hh:mm:ss a').format(dateTime);
-  }
-
-  String _formatTimeOnly(DateTime dateTime) {
-    // الخيار 1: الوقت بـ 12 ساعة مع AM/PM
-    return DateFormat('hh:mm:ss a').format(dateTime);
-    // 02:30:45 PM
-
-    // الخيار 2: الوقت بـ 12 ساعة بدون ثواني
-    // return DateFormat('hh:mm a').format(dateTime);
-    // 02:30 PM
-
-    // الخيار 3: الوقت بـ 24 ساعة
-    // return DateFormat('HH:mm:ss').format(dateTime);
-    // 14:30:45
-  }
-
   Color _getNoteColor(Note note) {
+    if (Theme.of(context).brightness == Brightness.dark) {
+      return Theme.of(context).colorScheme.secondaryContainer;
+    }
+
     if (note.priority == 3) {
       return Colors.red[50]!;
     } else if (note.priority == 2) {
@@ -179,6 +150,39 @@ abstract class NotesScreenBase<T extends StatefulWidget> extends State<T> {
     }
   }
 
+  Color _getBorderNoteColor(Note note) {
+    if (note.priority == 3) {
+      return const Color.fromARGB(255, 249, 151, 165);
+    } else if (note.priority == 2) {
+      return const Color.fromARGB(255, 249, 201, 123);
+    } else {
+      return const Color.fromARGB(255, 99, 205, 108);
+    }
+  }
+
+  String _getformatRemainingTime(Note note) {
+    if (note.publishedAt != null) {
+      if (note.repeatType == null || note.repeatType == 'none') {
+        // عرض التاريخ والوقت كامل
+        return DateTimeServices().formatRemainingTime(note.publishedAt!);
+      } else {
+        // عرض الوقت فقط
+        return DateTimeServices().compareTimeOnly(note.publishedAt!);
+      }
+    } else {
+      return DateTimeServices().formatDate(note.publishedAt!);
+    }
+    // DateTimeServices().formatRemainingTime(note.publishedAt!),
+
+    // if (note.priority == 3) {
+    //   return Colors.red[50]!;
+    // } else if (note.priority == 2) {
+    //   return Colors.orange[50]!;
+    // } else {
+    //   return Colors.green[50]!;
+    // }
+  }
+
   String _getNoteTitle(Note note) {
     final width = MediaQuery.of(context).size.width;
 
@@ -186,10 +190,10 @@ abstract class NotesScreenBase<T extends StatefulWidget> extends State<T> {
       if (note.publishedAt != null) {
         if (note.repeatType == null || note.repeatType == 'none') {
           // عرض التاريخ والوقت كامل
-          return '${note.title} (${formatDateTimeExactly(note.publishedAt!)})';
+          return '${note.title} (${DateTimeServices().formatDateTimeExactly(note.publishedAt!)})';
         } else {
           // عرض الوقت فقط
-          return '${note.title} (${_formatTimeOnly(note.publishedAt!)})';
+          return '${note.title} (${DateTimeServices().formatTimeOnly(note.publishedAt!)})';
         }
       } else {
         return note.title; // لو مفيش تاريخ، ارجع العنوان بس
@@ -226,12 +230,34 @@ abstract class NotesScreenBase<T extends StatefulWidget> extends State<T> {
       itemBuilder: (context, index) {
         final note = filteredNotes[index];
 
-        return Card(
-          elevation: 2,
+        return Container(
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+          // decoration: BoxDecoration(
+          //   border: Border(left: 12, color: Colors.grey[300]!),
+          //   // ظل خفيف زي Card
+          //   // boxShadow: [
+          //   //   BoxShadow(
+          //   //     color: Colors.grey.withOpacity(0.2),
+          //   //     spreadRadius: 1,
+          //   //     blurRadius: 4,
+          //   //     offset: Offset(0, 2),
+          //   //   ),
+          //   // ],
+          // ),
+          decoration: BoxDecoration(
+            // ✅ Border فقط - بدون boxShadow
+            border: Border(
+              left: BorderSide(
+                color: _getBorderNoteColor(note), // لون الشريط
+                width: 8, // عرض الشريط (8 بكسل)
+              ),
+            ),
+            // ✅ خلفية البطاقة
+            // لون الخلفية حسب الأولوية
+            // ✅ شكل البطاقة مع انحناءات
+            borderRadius: BorderRadius.circular(4),
           ),
+
           child: ListTile(
             contentPadding: const EdgeInsets.all(16),
             tileColor: _getNoteColor(note),
@@ -264,7 +290,9 @@ abstract class NotesScreenBase<T extends StatefulWidget> extends State<T> {
                 const SizedBox(height: 8),
                 if (note.createdAt != null)
                   Text(
-                    _formatDate(note.createdAt!),
+                    _getformatRemainingTime(note),
+                    // DateTimeServices().formatRemainingTime(note.publishedAt!),
+                    // DateTimeServices().formatDate(note.createdAt!),
                     style: TextStyle(fontSize: 12, color: Colors.grey[500]),
                   ),
               ],
@@ -300,15 +328,135 @@ abstract class NotesScreenBase<T extends StatefulWidget> extends State<T> {
               },
             ),
             onTap: () async {
-              await Navigator.push(
+              // await Navigator.push(
+              //   context,
+              //   MaterialPageRoute(
+              //     builder: (_) => AddEditNoteScreen(note: note),
+              //   ),
+              // );
+
+              // loadNotes();
+
+              final result = await Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (_) => AddEditNoteScreen(note: note),
                 ),
               );
-              loadNotes();
+
+              // ✅ نفس الكلام هنا
+              if (result != null || result == null) {
+                // _refreshWithCurrentFilter();
+                loadFilteredNotes(); // استخدم الدالة الجديدة
+                await loadAllCounts();
+              }
             },
           ),
+
+          // Card(
+          //   elevation: 2,
+          //   margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          //   shape: RoundedRectangleBorder(
+          //     borderRadius: BorderRadius.circular(12),
+          //   ),
+          //   child: ListTile(
+          //     contentPadding: const EdgeInsets.all(16),
+          //     tileColor: _getNoteColor(note),
+          //     leading: CircleAvatar(
+          //       backgroundColor: Colors.blue[100],
+          //       child: note.priority == 3
+          //           ? Icon(
+          //               Icons.local_fire_department,
+          //               color: Colors.red[700],
+          //               size: 20,
+          //             )
+          //           : Icon(Icons.note, color: Colors.blue[700], size: 20),
+          //     ),
+          //     title: Text(
+          //       _getNoteTitle(note),
+          //       style: const TextStyle(
+          //         fontWeight: FontWeight.bold,
+          //         fontSize: 16,
+          //       ),
+          //       maxLines: 1,
+          //       overflow: TextOverflow.ellipsis,
+          //     ),
+          //     subtitle: Column(
+          //       crossAxisAlignment: CrossAxisAlignment.start,
+          //       children: [
+          //         const SizedBox(height: 4),
+          //         Text(
+          //           note.content ?? '',
+          //           style: TextStyle(color: Colors.grey[600], fontSize: 14),
+          //           maxLines: 2,
+          //           overflow: TextOverflow.ellipsis,
+          //         ),
+          //         const SizedBox(height: 8),
+          //         if (note.createdAt != null)
+          //           Text(
+          //             _getformatRemainingTime(note),
+          //             // DateTimeServices().formatRemainingTime(note.publishedAt!),
+          //             // DateTimeServices().formatDate(note.createdAt!),
+          //             style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+          //           ),
+          //       ],
+          //     ),
+          //     trailing: IconButton(
+          //       icon: Icon(Icons.delete, color: Colors.red[700]),
+          //       onPressed: () async {
+          //         final confirm = await showDialog<bool>(
+          //           context: context,
+          //           builder: (context) => AlertDialog(
+          //             title: const Text('تأكيد الحذف'),
+          //             content: const Text('هل أنت متأكد من حذف هذه الملاحظة؟'),
+          //             actions: [
+          //               TextButton(
+          //                 onPressed: () => Navigator.pop(context, false),
+          //                 child: const Text('إلغاء'),
+          //               ),
+          //               TextButton(
+          //                 onPressed: () => Navigator.pop(context, true),
+          //                 style: TextButton.styleFrom(
+          //                   foregroundColor: Colors.red,
+          //                 ),
+          //                 child: const Text('حذف'),
+          //               ),
+          //             ],
+          //           ),
+          //         );
+
+          //         if (confirm == true) {
+          //           await db.deleteNote(note.id!);
+          //           loadNotes();
+          //         }
+          //       },
+          //     ),
+          //     onTap: () async {
+          //       // await Navigator.push(
+          //       //   context,
+          //       //   MaterialPageRoute(
+          //       //     builder: (_) => AddEditNoteScreen(note: note),
+          //       //   ),
+          //       // );
+
+          //       // loadNotes();
+
+          //       final result = await Navigator.push(
+          //         context,
+          //         MaterialPageRoute(
+          //           builder: (_) => AddEditNoteScreen(note: note),
+          //         ),
+          //       );
+
+          //       // ✅ نفس الكلام هنا
+          //       if (result != null || result == null) {
+          //         // _refreshWithCurrentFilter();
+          //         loadFilteredNotes(); // استخدم الدالة الجديدة
+          //         await loadAllCounts();
+          //       }
+          //     },
+          //   ),
+          // ),
         );
       },
     );

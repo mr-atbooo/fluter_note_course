@@ -5,6 +5,10 @@ import 'add_edit_note_screen.dart';
 import 'notes_screen_base.dart';
 
 class NotesScreenMobile extends StatefulWidget {
+  final VoidCallback toggleTheme;
+
+  const NotesScreenMobile({required this.toggleTheme});
+
   @override
   State<NotesScreenMobile> createState() => _NotesScreenMobileState();
 }
@@ -16,8 +20,16 @@ class _NotesScreenMobileState extends NotesScreenBase<NotesScreenMobile> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('الملاحظات'),
+        title: const Text('Notes'),
         actions: [
+          IconButton(
+            onPressed: widget.toggleTheme,
+            icon: Icon(
+              Theme.of(context).brightness == Brightness.dark
+                  ? Icons.wb_sunny
+                  : Icons.nightlight_round,
+            ),
+          ),
           IconButton(
             onPressed: () {
               setState(() {
@@ -28,8 +40,11 @@ class _NotesScreenMobileState extends NotesScreenBase<NotesScreenMobile> {
           ),
         ],
       ),
+
+      //  backgroundColor: const Color(0xFF3B82F6), // أزرق حديث
+      //                           foregroundColor: Colors.white,
       floatingActionButton: FloatingActionButton(
-        child: const Icon(Icons.add),
+        backgroundColor: const Color(0xFF3B82F6),
         onPressed: () async {
           await Navigator.push(
             context,
@@ -37,6 +52,7 @@ class _NotesScreenMobileState extends NotesScreenBase<NotesScreenMobile> {
           );
           loadNotes();
         },
+        child: const Icon(Icons.add, color: Colors.white),
       ),
       body: _buildBodyContent(),
     );
@@ -55,14 +71,42 @@ class _NotesScreenMobileState extends NotesScreenBase<NotesScreenMobile> {
   Widget _buildQuickFilters() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          ElevatedButton(onPressed: filterToday, child: Text('اليوم')),
-          ElevatedButton(onPressed: filterThisWeek, child: Text('هذا الأسبوع')),
-          ElevatedButton(onPressed: filterThisMonth, child: Text('هذا الشهر')),
-          ElevatedButton(onPressed: loadNotes, child: Text('الكل')),
-        ],
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          // mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _buildFilterChip("All Notes", loadNotes),
+            const SizedBox(width: 8),
+            _buildFilterChip("Today", filterToday),
+            const SizedBox(width: 8),
+            _buildFilterChip("This Week", filterThisWeek),
+            const SizedBox(width: 8),
+            _buildFilterChip("This Month", filterThisMonth),
+            const SizedBox(width: 8),
+            _buildFilterChip("Important", filterImportant),
+            const SizedBox(width: 8),
+            _buildFilterChip("Recurring", filterRecurring),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFilterChip(String label, VoidCallback onTap) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return ElevatedButton(
+      onPressed: onTap,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: isDark
+            ? Theme.of(context).primaryColor.withOpacity(0.1)
+            : null, // null = يستخدم لون الزر الافتراضي
+        foregroundColor: isDark ? Theme.of(context).primaryColor : null,
+      ),
+      child: Text(
+        label,
+        style: TextStyle(color: Theme.of(context).primaryColor),
       ),
     );
   }

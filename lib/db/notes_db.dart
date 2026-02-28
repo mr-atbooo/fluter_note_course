@@ -39,23 +39,23 @@ class NotesDB {
         )
       ''');
       },
-      // onUpgrade: (db, oldVersion, newVersion) async {
-      //   if (oldVersion < 4) {
-      //     // إضافة الحقول الجديدة
-      //     await db.execute(
-      //       'ALTER TABLE notes ADD COLUMN repeat_type TEXT DEFAULT "none"',
-      //     );
-      //     await db.execute('ALTER TABLE notes ADD COLUMN repeat_days TEXT');
-      //     await db.execute(
-      //       'ALTER TABLE notes ADD COLUMN repeat_interval INTEGER',
-      //     );
-      //     await db.execute(
-      //       'ALTER TABLE notes ADD COLUMN vibrate INTEGER DEFAULT 1',
-      //     );
-      //     await db.execute('ALTER TABLE notes ADD COLUMN sound TEXT');
-      //     await db.execute('ALTER TABLE notes ADD COLUMN last_notified TEXT');
-      //   }
-      // },
+      onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 4) {
+          // إضافة الحقول الجديدة
+          await db.execute(
+            'ALTER TABLE notes ADD COLUMN repeat_type TEXT DEFAULT "none"',
+          );
+          await db.execute('ALTER TABLE notes ADD COLUMN repeat_days TEXT');
+          await db.execute(
+            'ALTER TABLE notes ADD COLUMN repeat_interval INTEGER',
+          );
+          await db.execute(
+            'ALTER TABLE notes ADD COLUMN vibrate INTEGER DEFAULT 1',
+          );
+          await db.execute('ALTER TABLE notes ADD COLUMN sound TEXT');
+          await db.execute('ALTER TABLE notes ADD COLUMN last_notified TEXT');
+        }
+      },
     );
   }
 

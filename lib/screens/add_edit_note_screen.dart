@@ -1,337 +1,3 @@
-// import 'package:flutter/material.dart';
-// import '../db/notes_db.dart';
-// import '../models/note_model.dart';
-// import '../services/sound_service.dart';
-
-// class AddEditNoteScreen extends StatefulWidget {
-//   final Note? note;
-
-//   AddEditNoteScreen({this.note});
-
-//   @override
-//   State<AddEditNoteScreen> createState() => _AddEditNoteScreenState();
-// }
-
-// class _AddEditNoteScreenState extends State<AddEditNoteScreen> {
-//   final titleController = TextEditingController();
-//   final contentController = TextEditingController();
-//   final db = NotesDB();
-
-//   DateTime? publishedAt;
-//   int selectedPriority = 1;
-
-//   // ✅ متغيرات جديدة للتكرار والاهتزاز
-//   String repeatType = 'none';
-//   String? repeatDays;
-//   int repeatInterval = 1;
-//   bool vibrate = true;
-//   String? sound = 'ding';
-//   List<int> selectedDays = [];
-
-//   bool get requiresDate => repeatType == 'none'; // فقط بدون تكرار يحتاج تاريخ
-
-//   @override
-//   void initState() {
-//     super.initState();
-//     SoundService.stop();
-
-//     if (widget.note != null) {
-//       titleController.text = widget.note!.title;
-//       contentController.text = widget.note!.content ?? '';
-//       selectedPriority = widget.note!.priority;
-//       publishedAt = widget.note!.publishedAt;
-
-//       // ✅ تحميل القيم الجديدة من النوت الموجودة
-//       repeatType = widget.note!.repeatType ?? 'none';
-//       repeatDays = widget.note!.repeatDays;
-//       repeatInterval = widget.note!.repeatInterval ?? 1;
-//       vibrate = widget.note!.vibrate == 1;
-//       sound = widget.note!.sound ?? 'ding';
-
-//       // ✅ تحويل repeatDays لقائمة أرقام
-//       if (repeatDays != null && repeatDays!.isNotEmpty) {
-//         selectedDays = repeatDays!.split(',').map(int.parse).toList();
-//       }
-//     }
-//   }
-
-//   String priorityLabel(int value) {
-//     switch (value) {
-//       case 1:
-//         return 'Normal';
-//       case 2:
-//         return 'Medium';
-//       case 3:
-//         return 'High';
-//       default:
-//         return 'Normal';
-//     }
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: Text(widget.note == null ? 'Add Note' : 'Edit Note'),
-//       ),
-//       body: SingleChildScrollView(
-//         // ✅ مهم عشان المحتوى يبقى scrollable
-//         padding: const EdgeInsets.all(16),
-//         child: Column(
-//           children: [
-//             TextField(
-//               controller: titleController,
-//               decoration: InputDecoration(
-//                 labelText: 'Title',
-//                 border: OutlineInputBorder(),
-//               ),
-//             ),
-//             SizedBox(height: 15),
-//             TextField(
-//               controller: contentController,
-//               maxLines: 4,
-//               decoration: InputDecoration(
-//                 labelText: 'Content',
-//                 border: OutlineInputBorder(),
-//               ),
-//             ),
-//             SizedBox(height: 15),
-
-//             DropdownButtonFormField<int>(
-//               value: selectedPriority,
-//               decoration: InputDecoration(
-//                 labelText: 'Priority',
-//                 border: OutlineInputBorder(),
-//               ),
-//               items: const [
-//                 DropdownMenuItem(value: 1, child: Text('Normal')),
-//                 DropdownMenuItem(value: 2, child: Text('Medium')),
-//                 DropdownMenuItem(value: 3, child: Text('High')),
-//               ],
-//               onChanged: (value) {
-//                 setState(() {
-//                   selectedPriority = value!;
-//                 });
-//               },
-//             ),
-//             SizedBox(height: 15),
-
-//             Row(
-//               children: [
-//                 Icon(Icons.schedule),
-//                 SizedBox(width: 10),
-//                 Expanded(
-//                   child: Text(
-//                     publishedAt == null
-//                         ? 'No publish time selected'
-//                         : 'Publish at: ${publishedAt!.toLocal()}',
-//                   ),
-//                 ),
-//                 TextButton(
-//                   onPressed: pickPublishDateTime,
-//                   child: Text('Choose'),
-//                 ),
-//               ],
-//             ),
-
-//             SizedBox(height: 20),
-
-//             // ✅ إضافة إعدادات التكرار هنا
-//             _buildRepeatSettings(),
-
-//             SizedBox(height: 20),
-
-//             ElevatedButton(
-//               onPressed: () async {
-//                 Note note = Note(
-//                   id: widget.note?.id,
-//                   title: titleController.text,
-//                   content: contentController.text,
-//                   priority: selectedPriority,
-//                   publishedAt: publishedAt,
-//                   repeatType: repeatType,
-//                   repeatDays: repeatDays,
-//                   repeatInterval: repeatInterval,
-//                   vibrate: vibrate ? 1 : 0,
-//                   sound: sound,
-//                 );
-
-//                 if (widget.note == null) {
-//                   await db.insertNote(note);
-//                 } else {
-//                   await db.updateNote(note);
-//                 }
-
-//                 Navigator.pop(context);
-//               },
-//               child: Text('Save'),
-//             ),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-
-//   // ✅ دالة إعدادات التكرار
-//   Widget _buildRepeatSettings() {
-//     return Card(
-//       margin: const EdgeInsets.all(0), // عدلناها عشان متنفعش مع الـ padding
-//       child: Padding(
-//         padding: const EdgeInsets.all(16),
-//         child: Column(
-//           crossAxisAlignment: CrossAxisAlignment.start,
-//           children: [
-//             const Text(
-//               'إعدادات التكرار',
-//               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-//             ),
-//             const SizedBox(height: 16),
-
-//             // نوع التكرار
-//             DropdownButtonFormField<String>(
-//               value: repeatType,
-//               decoration: const InputDecoration(
-//                 labelText: 'نوع التكرار',
-//                 border: OutlineInputBorder(),
-//               ),
-//               items: const [
-//                 DropdownMenuItem(value: 'none', child: Text('بدون تكرار')),
-//                 DropdownMenuItem(value: 'daily', child: Text('يومي')),
-//                 DropdownMenuItem(value: 'weekly', child: Text('أسبوعي')),
-//                 DropdownMenuItem(value: 'hourly', child: Text('كل ساعة')),
-//                 DropdownMenuItem(value: 'custom', child: Text('أيام مخصصة')),
-//               ],
-//               onChanged: (value) {
-//                 setState(() {
-//                   repeatType = value!;
-//                 });
-//               },
-//             ),
-
-//             const SizedBox(height: 16),
-
-//             // للتكرار المخصص بالساعات
-//             if (repeatType == 'hourly') ...[
-//               TextFormField(
-//                 initialValue: repeatInterval.toString(),
-//                 decoration: const InputDecoration(
-//                   labelText: 'التكرار كل (ساعة)',
-//                   border: OutlineInputBorder(),
-//                 ),
-//                 keyboardType: TextInputType.number,
-//                 onChanged: (value) {
-//                   repeatInterval = int.tryParse(value) ?? 1;
-//                 },
-//               ),
-//             ],
-
-//             // لأيام التكرار المخصصة
-//             if (repeatType == 'custom') ...[
-//               const Text('اختر أيام التكرار:'),
-//               const SizedBox(height: 8),
-//               Wrap(
-//                 spacing: 8,
-//                 children: [
-//                   _buildDayChip('الإثنين', 1),
-//                   _buildDayChip('الثلاثاء', 2),
-//                   _buildDayChip('الأربعاء', 3),
-//                   _buildDayChip('الخميس', 4),
-//                   _buildDayChip('الجمعة', 5),
-//                   _buildDayChip('السبت', 6),
-//                   _buildDayChip('الأحد', 7),
-//                 ],
-//               ),
-//             ],
-
-//             const SizedBox(height: 16),
-
-//             // إعدادات الاهتزاز والصوت
-//             SwitchListTile(
-//               title: const Text('اهتزاز عند الرنين'),
-//               value: vibrate,
-//               onChanged: (value) {
-//                 setState(() {
-//                   vibrate = value;
-//                 });
-//               },
-//             ),
-
-//             const SizedBox(height: 8),
-
-//             // اختيار الصوت
-//             DropdownButtonFormField<String>(
-//               value: sound,
-//               decoration: const InputDecoration(
-//                 labelText: 'اختر الصوت',
-//                 border: OutlineInputBorder(),
-//               ),
-//               items: const [
-//                 DropdownMenuItem(value: 'ding', child: Text('دينج')),
-//                 DropdownMenuItem(value: 'bell', child: Text('جرس')),
-//                 DropdownMenuItem(value: 'alarm', child: Text('منبه')),
-//                 DropdownMenuItem(value: 'notification', child: Text('إشعار')),
-//               ],
-//               onChanged: (value) {
-//                 setState(() {
-//                   sound = value!;
-//                 });
-//               },
-//             ),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-
-//   // ✅ دالة الأيام المخصصة
-//   Widget _buildDayChip(String label, int day) {
-//     final isSelected = selectedDays.contains(day);
-//     return FilterChip(
-//       label: Text(label),
-//       selected: isSelected,
-//       onSelected: (selected) {
-//         setState(() {
-//           if (selected) {
-//             selectedDays.add(day);
-//           } else {
-//             selectedDays.remove(day);
-//           }
-//           // ترتيب الأيام وتخزينها
-//           selectedDays.sort();
-//           repeatDays = selectedDays.join(',');
-//         });
-//       },
-//     );
-//   }
-
-//   Future<void> pickPublishDateTime() async {
-//     final date = await showDatePicker(
-//       context: context,
-//       initialDate: publishedAt ?? DateTime.now(),
-//       firstDate: DateTime(2000),
-//       lastDate: DateTime(2100),
-//     );
-
-//     if (date == null) return;
-
-//     final time = await showTimePicker(
-//       context: context,
-//       initialTime: TimeOfDay.fromDateTime(publishedAt ?? DateTime.now()),
-//     );
-
-//     if (time == null) return;
-
-//     setState(() {
-//       publishedAt = DateTime(
-//         date.year,
-//         date.month,
-//         date.day,
-//         time.hour,
-//         time.minute,
-//       );
-//     });
-//   }
-// }
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart'; // ✅ أضف هذا للـ DateFormat
 import '../db/notes_db.dart';
@@ -431,11 +97,39 @@ class _AddEditNoteScreenState extends State<AddEditNoteScreen> {
         child: Column(
           children: [
             // العنوان
+            // TextField(
+            //   controller: titleController,
+            //   decoration: InputDecoration(
+            //     labelText: 'Title',
+            //     border: OutlineInputBorder(),
+            //   ),
+            // ),
             TextField(
               controller: titleController,
               decoration: InputDecoration(
                 labelText: 'Title',
-                border: OutlineInputBorder(),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(4),
+                  borderSide: BorderSide(
+                    color: Theme.of(context).primaryColor,
+                    width: 1.5,
+                  ),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(4),
+                  borderSide: BorderSide(
+                    color: Theme.of(context).primaryColor.withOpacity(0.5),
+                    width: 1,
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(4),
+                  borderSide: BorderSide(
+                    color: Theme.of(context).primaryColor,
+                    width: 2,
+                  ),
+                ),
+                labelStyle: TextStyle(color: Theme.of(context).primaryColor),
               ),
             ),
             SizedBox(height: 15),
@@ -444,9 +138,34 @@ class _AddEditNoteScreenState extends State<AddEditNoteScreen> {
             TextField(
               controller: contentController,
               maxLines: 4,
+              // decoration: InputDecoration(
+              //   labelText: 'Content',
+              //   border: OutlineInputBorder(),
+              // ),
               decoration: InputDecoration(
                 labelText: 'Content',
-                border: OutlineInputBorder(),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(4),
+                  borderSide: BorderSide(
+                    color: Theme.of(context).primaryColor,
+                    width: 1.5,
+                  ),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(4),
+                  borderSide: BorderSide(
+                    color: Theme.of(context).primaryColor.withOpacity(0.5),
+                    width: 1,
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(4),
+                  borderSide: BorderSide(
+                    color: Theme.of(context).primaryColor,
+                    width: 2,
+                  ),
+                ),
+                labelStyle: TextStyle(color: Theme.of(context).primaryColor),
               ),
             ),
             SizedBox(height: 15),
@@ -456,7 +175,28 @@ class _AddEditNoteScreenState extends State<AddEditNoteScreen> {
               value: selectedPriority,
               decoration: InputDecoration(
                 labelText: 'Priority',
-                border: OutlineInputBorder(),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(4),
+                  borderSide: BorderSide(
+                    color: Theme.of(context).primaryColor,
+                    width: 1.5,
+                  ),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(4),
+                  borderSide: BorderSide(
+                    color: Theme.of(context).primaryColor.withOpacity(0.5),
+                    width: 1,
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(4),
+                  borderSide: BorderSide(
+                    color: Theme.of(context).primaryColor,
+                    width: 2,
+                  ),
+                ),
+                labelStyle: TextStyle(color: Theme.of(context).primaryColor),
               ),
               items: const [
                 DropdownMenuItem(value: 1, child: Text('Normal')),
@@ -607,7 +347,10 @@ class _AddEditNoteScreenState extends State<AddEditNoteScreen> {
 
                 Navigator.pop(context);
               },
-              child: Text('Save'),
+              child: Text(
+                'Save',
+                style: TextStyle(color: Theme.of(context).primaryColor),
+              ),
             ),
           ],
         ),
@@ -671,9 +414,31 @@ class _AddEditNoteScreenState extends State<AddEditNoteScreen> {
             // نوع التكرار
             DropdownButtonFormField<String>(
               value: repeatType,
-              decoration: const InputDecoration(
+
+              decoration: InputDecoration(
                 labelText: 'نوع التكرار',
-                border: OutlineInputBorder(),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(4),
+                  borderSide: BorderSide(
+                    color: Theme.of(context).primaryColor,
+                    width: 1.5,
+                  ),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(4),
+                  borderSide: BorderSide(
+                    color: Theme.of(context).primaryColor.withOpacity(0.5),
+                    width: 1,
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(4),
+                  borderSide: BorderSide(
+                    color: Theme.of(context).primaryColor,
+                    width: 2,
+                  ),
+                ),
+                labelStyle: TextStyle(color: Theme.of(context).primaryColor),
               ),
               items: const [
                 DropdownMenuItem(value: 'none', child: Text('بدون تكرار')),
@@ -743,9 +508,31 @@ class _AddEditNoteScreenState extends State<AddEditNoteScreen> {
             // اختيار الصوت
             DropdownButtonFormField<String>(
               value: sound,
-              decoration: const InputDecoration(
+
+              decoration: InputDecoration(
                 labelText: 'اختر الصوت',
-                border: OutlineInputBorder(),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(4),
+                  borderSide: BorderSide(
+                    color: Theme.of(context).primaryColor,
+                    width: 1.5,
+                  ),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(4),
+                  borderSide: BorderSide(
+                    color: Theme.of(context).primaryColor.withOpacity(0.5),
+                    width: 1,
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(4),
+                  borderSide: BorderSide(
+                    color: Theme.of(context).primaryColor,
+                    width: 2,
+                  ),
+                ),
+                labelStyle: TextStyle(color: Theme.of(context).primaryColor),
               ),
               items: const [
                 DropdownMenuItem(value: 'ding', child: Text('دينج')),
@@ -786,12 +573,56 @@ class _AddEditNoteScreenState extends State<AddEditNoteScreen> {
   }
 
   // ✅ دالة اختيار التاريخ
+  // Future<void> pickPublishDate() async {
+  //   final date = await showDatePicker(
+  //     context: context,
+  //     initialDate: publishDate ?? DateTime.now(),
+  //     firstDate: DateTime(2000),
+  //     lastDate: DateTime(2100),
+  //   );
+  //   if (date != null) {
+  //     setState(() {
+  //       publishDate = date;
+  //     });
+  //   }
+  // }
+
   Future<void> pickPublishDate() async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     final date = await showDatePicker(
       context: context,
       initialDate: publishDate ?? DateTime.now(),
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: isDark
+                ? const ColorScheme.dark(
+                    primary: Color(0xFF3B82F6), // أزرق للأزرار
+                    onPrimary: Colors.white,
+                    onSurface: Colors.white,
+                    surface: Color(0xFF1E1E1E), // خلفية غامقة
+                  )
+                : const ColorScheme.light(
+                    primary: Color(0xFF3B82F6), // أزرق للأزرار
+                    onPrimary: Colors.white,
+                    onSurface: Colors.black87,
+                    surface: Colors.white,
+                  ),
+            dialogBackgroundColor: isDark
+                ? const Color(0xFF2C2C2C)
+                : Colors.white,
+            textButtonTheme: TextButtonThemeData(
+              style: TextButton.styleFrom(
+                foregroundColor: const Color(0xFF3B82F6), // لون النص في الأزرار
+              ),
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
     if (date != null) {
       setState(() {
@@ -801,11 +632,56 @@ class _AddEditNoteScreenState extends State<AddEditNoteScreen> {
   }
 
   // ✅ دالة اختيار الوقت
+  // Future<void> pickPublishTime() async {
+  //   final time = await showTimePicker(
+  //     context: context,
+  //     initialTime: TimeOfDay.fromDateTime(publishTime ?? DateTime.now()),
+  //   );
+  //   if (time != null) {
+  //     setState(() {
+  //       publishTime = DateTime(2000, 1, 1, time.hour, time.minute);
+  //     });
+  //   }
+  // }
   Future<void> pickPublishTime() async {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     final time = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.fromDateTime(publishTime ?? DateTime.now()),
+      builder: (context, child) {
+        return Theme(
+          data: theme.copyWith(
+            colorScheme: ColorScheme(
+              brightness: isDark ? Brightness.dark : Brightness.light,
+              primary: const Color(0xFF3B82F6), // اللون الأساسي (للأزرار)
+              onPrimary: Colors.white, // لون النص على الزر
+              secondary: const Color(0xFF3B82F6), // لون ثانوي
+              onSecondary: Colors.white,
+              surface: isDark
+                  ? const Color(0xFF2C2C2C)
+                  : Colors.white, // خلفية الـ TimePicker
+              onSurface: isDark ? Colors.white : Colors.black87, // لون النص
+              error: Colors.red,
+              onError: Colors.white,
+            ),
+            textButtonTheme: TextButtonThemeData(
+              style: TextButton.styleFrom(
+                foregroundColor: const Color(
+                  0xFF3B82F6,
+                ), // لون نص الزر (OK/CANCEL)
+              ),
+            ),
+            // dialogTheme: DialogTheme(
+            //   backgroundColor: isDark ? const Color(0xFF2C2C2C) : Colors.white,
+            // ),
+          ),
+          child: child!,
+        );
+      },
     );
+
     if (time != null) {
       setState(() {
         publishTime = DateTime(2000, 1, 1, time.hour, time.minute);

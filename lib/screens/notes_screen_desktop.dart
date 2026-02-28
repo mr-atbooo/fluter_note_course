@@ -1,6 +1,7 @@
-import 'package:fluter_note_course/services/filter_service.dart';
+// import '../../services/filter_service.dart';
+import '../services/filter_service.dart';
 import 'package:flutter/material.dart';
-import 'package:window_manager/window_manager.dart'; // إضافة هذا الـ import
+// import 'package:window_manager/window_manager.dart'; // إضافة هذا الـ import
 
 import '../main.dart'; // إضافة هذا الـ import للوصول إلى windowTitleController
 
@@ -8,13 +9,15 @@ import 'add_edit_note_screen.dart';
 import 'notes_screen_base.dart';
 
 class NotesScreenDesktop extends StatefulWidget {
+  final VoidCallback toggleTheme;
+
+  const NotesScreenDesktop({required this.toggleTheme});
   @override
   State<NotesScreenDesktop> createState() => _NotesScreenDesktopState();
 }
 
 class _NotesScreenDesktopState extends NotesScreenBase<NotesScreenDesktop> {
   String selectedSidebarItem = 'All Notes';
-  
 
   @override
   void initState() {
@@ -25,11 +28,16 @@ class _NotesScreenDesktopState extends NotesScreenBase<NotesScreenDesktop> {
 
   // دالة لتحديث عنوان النافذة
   void _updateWindowTitle(String title) {
-    if (isDesktop) {
-      // الترجمة حسب اللغة
-      // String englishTitle = _getEnglishTitle(title);
-      windowTitleController.add(title);
+    if (isDesktop && windowTitleController != null) {
+      // ✅ استخدام ?. لتجنب الخطأ
+      windowTitleController?.add(title);
     }
+
+    // if (isDesktop) {
+    //   // الترجمة حسب اللغة
+    //   // String englishTitle = _getEnglishTitle(title);
+    //   windowTitleController.add(title);
+    // }
   }
 
   @override
@@ -42,7 +50,10 @@ class _NotesScreenDesktopState extends NotesScreenBase<NotesScreenDesktop> {
   Widget _buildSidebar() {
     return Container(
       width: 250,
-      color: const Color(0xFFEDEBEB),
+      color: Theme.of(
+        context,
+      ).colorScheme.primary, // لون خلفية حديث يتغير مع الوضع الداكن/الفاتح
+      // color: const Color(0xFFEDEBEB),
       child: Column(
         children: [
           const SizedBox(height: 40),
@@ -63,6 +74,9 @@ class _NotesScreenDesktopState extends NotesScreenBase<NotesScreenDesktop> {
                     setState(() => selectedSidebarItem = 'All Notes');
                     _updateWindowTitle('All Notes'); // تحديث العنوان
                     await FilterService.saveLastFilter('all');
+                    print('All Notes tapped, loading all notes...');
+                    final filter = await FilterService.getLastFilter();
+                    print(filter);
                     loadNotes();
                   },
                 ),
@@ -74,6 +88,9 @@ class _NotesScreenDesktopState extends NotesScreenBase<NotesScreenDesktop> {
                     setState(() => selectedSidebarItem = 'Today');
                     _updateWindowTitle('Today'); // تحديث العنوان
                     await FilterService.saveLastFilter('today');
+                    print('Today tapped, loading today notes...');
+                    final filter = await FilterService.getLastFilter();
+                    print(filter);
                     filterToday();
                   },
                 ),
@@ -85,6 +102,10 @@ class _NotesScreenDesktopState extends NotesScreenBase<NotesScreenDesktop> {
                     setState(() => selectedSidebarItem = 'This Week');
                     _updateWindowTitle('This Week'); // تحديث العنوان
                     await FilterService.saveLastFilter('this_week');
+                    print('This Week tapped, loading this week notes...');
+                    final filter = await FilterService.getLastFilter();
+                    print(filter);
+
                     filterThisWeek();
                   },
                 ),
@@ -165,20 +186,25 @@ class _NotesScreenDesktopState extends NotesScreenBase<NotesScreenDesktop> {
       // color: isSelected ? const Color(0xFFDDDDE5) : null,
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: isSelected ? const Color(0xFFDDDDE5) : null,
+        color: isSelected
+            ? Theme.of(context).colorScheme.secondaryFixedDim
+            : null,
         borderRadius: BorderRadius.circular(12),
       ),
       child: ListTile(
         leading: Icon(
           icon,
-          color: isSelected ? Colors.blue : Colors.grey[700],
+          color: isSelected
+              ? Colors.blue
+              : Theme.of(context).colorScheme.secondaryFixed,
           size: 22,
         ),
         title: Text(
           title,
           style: TextStyle(
             // color: isSelected ? Colors.blue : Colors.grey[800],
-            color: Colors.grey[800],
+            // color: Colors.grey[800],
+            color: Theme.of(context).colorScheme.secondaryFixed,
             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
             fontSize: 15,
           ),
@@ -190,7 +216,9 @@ class _NotesScreenDesktopState extends NotesScreenBase<NotesScreenDesktop> {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: isSelected ? null : Colors.grey[300],
+                  color: isSelected
+                      ? null
+                      : Theme.of(context).colorScheme.secondaryContainer,
                   // color: isSelected ? Colors.blue : Colors.grey[300],
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -199,7 +227,7 @@ class _NotesScreenDesktopState extends NotesScreenBase<NotesScreenDesktop> {
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
-                    color: Colors.grey[800],
+                    color: Theme.of(context).colorScheme.secondaryFixed,
                     // color: isSelected ? Colors.white : Colors.grey[800],
                   ),
                 ),
@@ -229,22 +257,66 @@ class _NotesScreenDesktopState extends NotesScreenBase<NotesScreenDesktop> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                FloatingActionButton.extended(
-                  onPressed: () async {
-                    final result = await Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => AddEditNoteScreen()),
-                    );
-                    // ✅ لو رجعنا من الشاشة (أيًا كان السبب)
-  if (result != null || result == null) {
-    loadFilteredNotes(); // استخدم الدالة الجديدة
-    await loadAllCounts(); // حدث الأعداد كمان
-  }
-                    // loadFilteredNotes();
+                Row(
+                  children: [
+                    Material(
+                      color: Theme.of(context).colorScheme.secondaryContainer,
+                      // color: Colors.grey[300],
+                      borderRadius: BorderRadius.circular(10),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(10),
+                        onTap: widget.toggleTheme,
+                        child: SizedBox(
+                          height: 40,
+                          width: 40,
+                          child: Center(
+                            child: Icon(
+                              Theme.of(context).brightness == Brightness.dark
+                                  ? Icons.wb_sunny
+                                  : Icons.nightlight_round,
+                              size: 20,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+
                     
-                  },
-                  icon: const Icon(Icons.add),
-                  label: const Text('إضافة ملاحظة'),
+                    SizedBox(
+                      height: 40,
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF3B82F6), // أزرق حديث
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          elevation: 0,
+                        ),
+                        onPressed: () async {
+                          final result = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => AddEditNoteScreen(),
+                            ),
+                          );
+                          // ✅ لو رجعنا من الشاشة (أيًا كان السبب)
+                          if (result != null || result == null) {
+                            loadFilteredNotes(); // استخدم الدالة الجديدة
+                            await loadAllCounts(); // حدث الأعداد كمان
+                          }
+                          // loadFilteredNot
+                        },
+                        icon: const Icon(Icons.add, size: 18),
+                        label: const Text(
+                          'New Note',
+                          style: TextStyle(fontWeight: FontWeight.w500),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
