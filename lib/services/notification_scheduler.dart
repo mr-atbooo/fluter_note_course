@@ -8,15 +8,8 @@ class NotificationScheduler {
 
   static void start() {
     _timer ??= Timer.periodic(const Duration(minutes: 1), (_) async {
-      final now = DateTime.now();
-
-      // final notes = await _db.rawQuery('''
-      //   SELECT * FROM notes
-      //   WHERE published_at IS NOT NULL
-      //   AND published_at <= ?
-      //   AND notified = 0
-      // ''', [now.toIso8601String()]);
-      final notes = await _db.getDueNotifications(now.toIso8601String());
+      
+      final notes = await _db.getDueNotifications();
 
       for (var note in notes) {
         await NotificationService.showNotification(note);
