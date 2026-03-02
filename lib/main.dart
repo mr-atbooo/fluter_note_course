@@ -33,6 +33,29 @@ const AndroidNotificationChannel androidChannel = AndroidNotificationChannel(
 StreamController<String>? windowTitleController;
 
 /// 🔔 Init notifications (Desktop + Mobile)
+// Future<void> initNotifications() async {
+//   const initializationSettings = InitializationSettings(
+//     linux: LinuxInitializationSettings(defaultActionName: 'Open'),
+//     windows: WindowsInitializationSettings(
+//       appName: 'Flutter Notes',
+//       appUserModelId: 'com.atbooo.flutter.notes',
+//       guid: '123e4567-e89b-12d3-a456-426614174000',
+//     ),
+//     macOS: DarwinInitializationSettings(),
+//     android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+//   );
+
+//   await notifications.initialize(settings: initializationSettings);
+
+//   /// 🔥 Android notification channel بالصوت
+//   if (Platform.isAndroid) {
+//     await notifications
+//         .resolvePlatformSpecificImplementation<
+//           AndroidFlutterLocalNotificationsPlugin
+//         >()
+//         ?.createNotificationChannel(androidChannel);
+//   }
+// }
 Future<void> initNotifications() async {
   const initializationSettings = InitializationSettings(
     linux: LinuxInitializationSettings(defaultActionName: 'Open'),
@@ -47,13 +70,18 @@ Future<void> initNotifications() async {
 
   await notifications.initialize(settings: initializationSettings);
 
-  /// 🔥 Android notification channel بالصوت
+  /// 🔥 Android channel
   if (Platform.isAndroid) {
-    await notifications
+    final androidImplementation = notifications
         .resolvePlatformSpecificImplementation<
           AndroidFlutterLocalNotificationsPlugin
-        >()
-        ?.createNotificationChannel(androidChannel);
+        >();
+
+    // إنشاء القناة
+    await androidImplementation?.createNotificationChannel(androidChannel);
+
+    // 🔔 طلب صلاحية الإشعارات (مهم جداً Android 13+)
+    await androidImplementation?.requestNotificationsPermission();
   }
 }
 

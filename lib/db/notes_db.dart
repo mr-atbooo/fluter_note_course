@@ -376,45 +376,112 @@ class NotesDB {
   }
 
   // في NotesDB
-  Future<List<Note>> getDueNotificationsWithRepeat() async {
+  // Future<List<Note>> getDueNotificationsWithRepeat() async {
+  //   final db = await database;
+  //   final now = DateTime.now();
+  //
+  //   // بداية اليوم
+  //   final startOfDay = DateTime(now.year, now.month, now.day);
+  //   final endOfDay = DateTime(now.year, now.month, now.day, 23, 59, 59);
+  //
+  //   // الملاحظات العادية (غير مكررة) المستحقة اليوم
+  //   final regularNotes = await db.rawQuery(
+  //     '''
+  //   SELECT * FROM notes
+  //   WHERE is_published = 0
+  //   AND (repeat_type = 'none' OR repeat_type IS NULL)
+  //   AND published_at IS NOT NULL
+  //   AND datetime(published_at) BETWEEN datetime(?) AND datetime(?)
+  // ''',
+  //     [startOfDay.toIso8601String(), endOfDay.toIso8601String()],
+  //   );
+  //
+  //   // الملاحظات المتكررة
+  //   final repeatNotes = await db.rawQuery('''
+  //   SELECT * FROM notes
+  //   WHERE repeat_type != 'none'
+  //   AND repeat_type IS NOT NULL
+  //   AND published_at IS NOT NULL
+  // ''');
+  //
+  //   // تصفية الملاحظات المتكررة المستحقة اليوم
+  //   List<Map<String, dynamic>> allDueNotes = [];
+  //   allDueNotes.addAll(regularNotes);
+  //
+  //   for (var note in repeatNotes) {
+  //     if (_isNoteDueToday(note, now)) {
+  //       allDueNotes.add(note);
+  //     }
+  //   }
+  //
+  //   return allDueNotes.map((e) => Note.fromMap(e)).toList();
+  // }
+  Future<List<Map<String, dynamic>>> getDueNotificationsWithRepeat() async {
     final db = await database;
     final now = DateTime.now();
 
-    // بداية اليوم
-    final startOfDay = DateTime(now.year, now.month, now.day);
-    final endOfDay = DateTime(now.year, now.month, now.day, 23, 59, 59);
+    final result = await db.query('notes', where: 'published_at IS NOT NULL');
 
-    // الملاحظات العادية (غير مكررة) المستحقة اليوم
-    final regularNotes = await db.rawQuery(
-      '''
-    SELECT * FROM notes 
-    WHERE is_published = 0 
-    AND (repeat_type = 'none' OR repeat_type IS NULL)
-    AND published_at IS NOT NULL
-    AND datetime(published_at) BETWEEN datetime(?) AND datetime(?)
-  ''',
-      [startOfDay.toIso8601String(), endOfDay.toIso8601String()],
-    );
+    List<Map<String, dynamic>> dueNotes = [];
 
-    // الملاحظات المتكررة
-    final repeatNotes = await db.rawQuery('''
-    SELECT * FROM notes 
-    WHERE repeat_type != 'none' 
-    AND repeat_type IS NOT NULL
-    AND published_at IS NOT NULL
-  ''');
+    for (var note in result) {
+      final publishedAtString = note['published_at'] as String?;
+      if (publishedAtString == null) continue;
 
-    // تصفية الملاحظات المتكررة المستحقة اليوم
-    List<Map<String, dynamic>> allDueNotes = [];
-    allDueNotes.addAll(regularNotes);
+      final publishedAt = DateTime.parse(publishedAtString);
+      final repeatType = note['repeat_type']?.toString() ?? 'none';
+      final isPublished = note['is_published'] ?? 0;
 
-    for (var note in repeatNotes) {
-      if (_isNoteDueToday(note, now)) {
-        allDueNotes.add(note);
+      // ⛔ لو مش متكرر واتنشر قبل كده → نعديه
+      if (repeatType == 'none' && isPublished == 1) continue;
+
+      bool isDue = false;
+
+      switch (repeatType) {
+        case 'none':
+          isDue = now.isAfter(publishedAt);
+          break;
+
+        case 'daily':
+          isDue =
+              now.hour == publishedAt.hour && now.minute == publishedAt.minute;
+          break;
+
+        case 'weekly':
+          isDue =
+              now.weekday == publishedAt.weekday &&
+              now.hour == publishedAt.hour &&
+              now.minute == publishedAt.minute;
+          break;
+
+        case 'hourly':
+          final interval = (note['repeat_interval'] as int?) ?? 1;
+          final diff = now.difference(publishedAt).inMinutes;
+
+          isDue = diff >= 0 && diff % (interval * 60) == 0;
+          break;
+
+        case 'custom':
+          final days =
+              note['repeat_days']
+                  ?.toString()
+                  .split(',')
+                  .map(int.parse)
+                  .toList() ??
+              [];
+          isDue =
+              days.contains(now.weekday) &&
+              now.hour == publishedAt.hour &&
+              now.minute == publishedAt.minute;
+          break;
+      }
+
+      if (isDue) {
+        dueNotes.add(note);
       }
     }
 
-    return allDueNotes.map((e) => Note.fromMap(e)).toList();
+    return dueNotes;
   }
 
   bool _isNoteDueToday(Map<String, dynamic> note, DateTime now) {

@@ -97,13 +97,6 @@ class _AddEditNoteScreenState extends State<AddEditNoteScreen> {
         child: Column(
           children: [
             // العنوان
-            // TextField(
-            //   controller: titleController,
-            //   decoration: InputDecoration(
-            //     labelText: 'Title',
-            //     border: OutlineInputBorder(),
-            //   ),
-            // ),
             TextField(
               controller: titleController,
               decoration: InputDecoration(
