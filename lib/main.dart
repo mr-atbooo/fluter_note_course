@@ -18,13 +18,26 @@ bool get isDesktop =>
     Platform.isLinux || Platform.isWindows || Platform.isMacOS;
 
 /// 🔔 Android channel (مهم يكون عالمي)
-const AndroidNotificationChannel androidChannel = AndroidNotificationChannel(
-  'notes_channel_v2', // غيره لو القناة القديمة موجودة
-  'Notes',
-  description: 'Notes notifications',
+// const AndroidNotificationChannel androidChannel = AndroidNotificationChannel(
+//   'notes_channel_v2', // غيره لو القناة القديمة موجودة
+//   'Notes',
+//   description: 'Notes notifications',
+//   importance: Importance.max,
+//   playSound: true,
+//   sound: RawResourceAndroidNotificationSound('ding'),
+// );
+
+
+AndroidNotificationChannel androidChannelMobile = AndroidNotificationChannel(
+  'notes_channel_mobile_v3',
+  'Notes Mobile',
+  description: 'Mobile notifications',
   importance: Importance.max,
   playSound: true,
-  sound: RawResourceAndroidNotificationSound('ding'),
+  enableVibration: true,
+  enableLights: true,
+  // لو تحب تخلي الصوت Default
+  // اترك sound = null
 );
 
 // /// Stream لتغيير عنوان النافذة
@@ -33,29 +46,6 @@ const AndroidNotificationChannel androidChannel = AndroidNotificationChannel(
 StreamController<String>? windowTitleController;
 
 /// 🔔 Init notifications (Desktop + Mobile)
-// Future<void> initNotifications() async {
-//   const initializationSettings = InitializationSettings(
-//     linux: LinuxInitializationSettings(defaultActionName: 'Open'),
-//     windows: WindowsInitializationSettings(
-//       appName: 'Flutter Notes',
-//       appUserModelId: 'com.atbooo.flutter.notes',
-//       guid: '123e4567-e89b-12d3-a456-426614174000',
-//     ),
-//     macOS: DarwinInitializationSettings(),
-//     android: AndroidInitializationSettings('@mipmap/ic_launcher'),
-//   );
-
-//   await notifications.initialize(settings: initializationSettings);
-
-//   /// 🔥 Android notification channel بالصوت
-//   if (Platform.isAndroid) {
-//     await notifications
-//         .resolvePlatformSpecificImplementation<
-//           AndroidFlutterLocalNotificationsPlugin
-//         >()
-//         ?.createNotificationChannel(androidChannel);
-//   }
-// }
 Future<void> initNotifications() async {
   const initializationSettings = InitializationSettings(
     linux: LinuxInitializationSettings(defaultActionName: 'Open'),
@@ -78,7 +68,7 @@ Future<void> initNotifications() async {
         >();
 
     // إنشاء القناة
-    await androidImplementation?.createNotificationChannel(androidChannel);
+    await androidImplementation?.createNotificationChannel(androidChannelMobile);
 
     // 🔔 طلب صلاحية الإشعارات (مهم جداً Android 13+)
     await androidImplementation?.requestNotificationsPermission();
@@ -197,19 +187,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           : ThemeMode.light;
     });
   }
-  // void toggleTheme() {
-  //   final currentBrightness =
-  //       WidgetsBinding.instance.platformDispatcher.platformBrightness;
-
-  //   final isCurrentlyDark =
-  //       _themeMode == ThemeMode.dark ||
-  //       (_themeMode == ThemeMode.system &&
-  //           currentBrightness == Brightness.dark);
-
-  //   setState(() {
-  //     _themeMode = isCurrentlyDark ? ThemeMode.light : ThemeMode.dark;
-  //   });
-  // }
+  
 
   @override
   Widget build(BuildContext context) {

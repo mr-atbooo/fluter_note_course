@@ -5,38 +5,45 @@ import '../services/sound_service.dart';
 
 class NotificationService {
   static Future<void> showNotification(Map<String, dynamic> note) async {
-    // await notifications.show(
-    //   id: note['id'] as int,
-    //   title: note['title']?.toString(),
-    //   body: note['content']?.toString(),
-    //   notificationDetails: NotificationDetails(
-    //     linux: LinuxNotificationDetails(
-    //       urgency: LinuxNotificationUrgency.critical,
-    //     ),
-    //     windows: WindowsNotificationDetails(),
-    //     android: AndroidNotificationDetails(
-    //       'notes_channel',
-    //       'Notes',
-    //       importance: Importance.max,
-    //       priority: Priority.high,
-    //     ),
-    //   ),
-    // );
+
     await notifications.show(
       id: DateTime.now().millisecondsSinceEpoch.remainder(100000),
       title: note['title'],
       body: note['content'],
       notificationDetails: NotificationDetails(
-        android: AndroidNotificationDetails(
-          androidChannel.id,
-          androidChannel.name,
-          channelDescription: androidChannel.description,
-          importance: Importance.max,
-          priority: Priority.high,
-          playSound: true,
-          fullScreenIntent: true, // 🔥 دي المفتاح
-          category: AndroidNotificationCategory.alarm,
-        ),
+           //old code
+        // android: AndroidNotificationDetails(
+        //   androidChannel.id,
+        //   androidChannel.name,
+        //   channelDescription: androidChannel.description,
+        //   importance: Importance.max,
+        //   priority: Priority.high,
+        //   playSound: true,
+        //   fullScreenIntent: true, // 🔥 دي المفتاح
+        //   category: AndroidNotificationCategory.alarm,
+        // ),
+        
+        android: Platform.isAndroid
+    ? const AndroidNotificationDetails(
+        'notes_channel_mobile_v3',
+        'Notes',
+        // channelDescription: 'Mobile notifications',
+        // importance: Importance.max,
+        // priority: Priority.high,
+        // playSound: true,
+        // enableVibration: true,
+channelDescription: 'Alarm style notifications',
+        importance: Importance.max,
+        priority: Priority.high,
+        playSound: true,
+        enableVibration: true,
+        fullScreenIntent: true,
+        category: AndroidNotificationCategory.alarm,
+        audioAttributesUsage: AudioAttributesUsage.alarm,
+
+      )
+    : null,
+
 
         linux: LinuxNotificationDetails(
           urgency: LinuxNotificationUrgency.critical,
