@@ -23,10 +23,10 @@ The app allows users to create tasks with scheduled notifications and works on b
 ![App Icon](assets/icon.png)
 
 ### Main Screen 1
-![Screen 1](assets/image1)
+![Screen 1](assets/image1.png)
 
 ### Main Screen 2
-![Screen 2](assets/image2)
+![Screen 2](assets/image2.png)
 
 ---
 
