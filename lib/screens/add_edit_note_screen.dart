@@ -411,7 +411,7 @@ class _AddEditNoteScreenState extends State<AddEditNoteScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-             Text(
+            Text(
               'form.repeats.settings'.tr(),
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
@@ -446,12 +446,27 @@ class _AddEditNoteScreenState extends State<AddEditNoteScreen> {
                 ),
                 labelStyle: TextStyle(color: Theme.of(context).primaryColor),
               ),
-              items:  [
-                DropdownMenuItem(value: 'none', child: Text('form.repeats.none'.tr())),
-                DropdownMenuItem(value: 'daily', child: Text('form.repeats.daily'.tr())),
-                DropdownMenuItem(value: 'weekly', child: Text('form.repeats.weekly'.tr())),
-                DropdownMenuItem(value: 'hourly', child: Text('form.repeats.hourly'.tr())),
-                DropdownMenuItem(value: 'custom', child: Text('form.repeats.custom_days'.tr())),
+              items: [
+                DropdownMenuItem(
+                  value: 'none',
+                  child: Text('form.repeats.none'.tr()),
+                ),
+                DropdownMenuItem(
+                  value: 'daily',
+                  child: Text('form.repeats.daily'.tr()),
+                ),
+                DropdownMenuItem(
+                  value: 'weekly',
+                  child: Text('form.repeats.weekly'.tr()),
+                ),
+                DropdownMenuItem(
+                  value: 'hourly',
+                  child: Text('form.repeats.hourly'.tr()),
+                ),
+                DropdownMenuItem(
+                  value: 'custom',
+                  child: Text('form.repeats.custom_days'.tr()),
+                ),
               ],
               onChanged: (value) {
                 setState(() {
@@ -467,7 +482,7 @@ class _AddEditNoteScreenState extends State<AddEditNoteScreen> {
             if (repeatType == 'hourly') ...[
               TextFormField(
                 initialValue: repeatInterval.toString(),
-                decoration:  InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'form.repeats.hourly_repeated'.tr(),
                   border: OutlineInputBorder(),
                 ),
@@ -480,18 +495,18 @@ class _AddEditNoteScreenState extends State<AddEditNoteScreen> {
 
             // لأيام التكرار المخصصة
             if (repeatType == 'custom') ...[
-               Text('form.repeats.dayes_to_repeat'.tr()),
+              Text('form.repeats.dayes_to_repeat'.tr()),
               const SizedBox(height: 8),
               Wrap(
                 spacing: 8,
                 children: [
-                  _buildDayChip('form.repeats.sunday'.tr(), 1),
-                  _buildDayChip('form.repeats.monday'.tr(), 2),
-                  _buildDayChip('form.repeats.tuesday'.tr(), 3),
-                  _buildDayChip('form.repeats.wednesday'.tr(), 4),
-                  _buildDayChip('form.repeats.thursday'.tr(), 5),
-                  _buildDayChip('form.repeats.friday'.tr(), 6),
-                  _buildDayChip('form.repeats.saturday'.tr(), 7),
+                  _buildDayChip('form.repeats.monday'.tr(), 1),
+                  _buildDayChip('form.repeats.tuesday'.tr(), 2),
+                  _buildDayChip('form.repeats.wednesday'.tr(), 3),
+                  _buildDayChip('form.repeats.thursday'.tr(), 4),
+                  _buildDayChip('form.repeats.friday'.tr(), 5),
+                  _buildDayChip('form.repeats.saturday'.tr(), 6),
+                  _buildDayChip('form.repeats.sunday'.tr(), 7),
                 ],
               ),
             ],
@@ -500,7 +515,7 @@ class _AddEditNoteScreenState extends State<AddEditNoteScreen> {
 
             // إعدادات الاهتزاز والصوت
             SwitchListTile(
-              title:  Text('form.repeats.vibration_on_ringing'.tr()),
+              title: Text('form.repeats.vibration_on_ringing'.tr()),
               value: vibrate,
               onChanged: (value) {
                 setState(() {
@@ -540,11 +555,17 @@ class _AddEditNoteScreenState extends State<AddEditNoteScreen> {
                 ),
                 labelStyle: TextStyle(color: Theme.of(context).primaryColor),
               ),
-              items:  [
+              items: [
                 DropdownMenuItem(value: 'ding', child: Text('form.ding'.tr())),
                 DropdownMenuItem(value: 'bell', child: Text('form.bell'.tr())),
-                DropdownMenuItem(value: 'alarm', child: Text('form.alarm'.tr())),
-                DropdownMenuItem(value: 'notification', child: Text('form.notification'.tr())),
+                DropdownMenuItem(
+                  value: 'alarm',
+                  child: Text('form.alarm'.tr()),
+                ),
+                DropdownMenuItem(
+                  value: 'notification',
+                  child: Text('form.notification'.tr()),
+                ),
               ],
               onChanged: (value) {
                 setState(() {
