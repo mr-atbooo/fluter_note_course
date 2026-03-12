@@ -14,6 +14,18 @@ The app allows users to create tasks with scheduled notifications and works on b
 * 🖥️ Desktop support
 * 📱 Android support
 * 🎨 Custom app icon
+* 🌐 Multilingual Support (English & Arabic)
+
+---
+
+## 🌐 Multilingual Support
+
+The app now supports **two languages**:
+
+* 🇬🇧 **English**
+* 🇪🇬 **Arabic**
+
+Users can switch between languages, and all app texts, labels, and buttons will update accordingly.
 
 ---
 
@@ -45,7 +57,7 @@ The app allows users to create tasks with scheduled notifications and works on b
 ### 1️⃣ Clone the repository
 
 ```bash
-git clone https://github.com/your-username/your-repo-name.git
+git clone https://github.com/mr-atbooo/fluter_note_course.git
 ```
 
 ### 2️⃣ Install dependencies
