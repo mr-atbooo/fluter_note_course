@@ -12,4 +12,16 @@ class FilterService {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_filterKey) ?? 'all';
   }
+
+  static Future<String> getSharedPreferences(String key) async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(key) ?? ''
+    ;
+  }
+
+  static Future<void> setSharedPreferences(String key, String value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(key, value);
+  }
+
 }

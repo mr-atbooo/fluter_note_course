@@ -3,6 +3,8 @@ import '../services/filter_service.dart';
 import 'package:flutter/material.dart';
 // import 'package:window_manager/window_manager.dart'; // إضافة هذا الـ import
 
+import 'package:easy_localization/easy_localization.dart';
+
 import '../main.dart'; // إضافة هذا الـ import للوصول إلى windowTitleController
 
 import 'add_edit_note_screen.dart';
@@ -17,7 +19,7 @@ class NotesScreenDesktop extends StatefulWidget {
 }
 
 class _NotesScreenDesktopState extends NotesScreenBase<NotesScreenDesktop> {
-  String selectedSidebarItem = 'All Notes';
+  String selectedSidebarItem = 'all_notes';
 
   @override
   void initState() {
@@ -27,10 +29,11 @@ class _NotesScreenDesktopState extends NotesScreenBase<NotesScreenDesktop> {
   }
 
   // دالة لتحديث عنوان النافذة
-  void _updateWindowTitle(String title) {
+  void _updateWindowTitle(String title) async {
     if (isDesktop && windowTitleController != null) {
       // ✅ استخدام ?. لتجنب الخطأ
-      windowTitleController?.add(title);
+      windowTitleController?.add(title.tr());
+      await FilterService.setSharedPreferences('title', title);
     }
 
     // if (isDesktop) {
@@ -57,8 +60,8 @@ class _NotesScreenDesktopState extends NotesScreenBase<NotesScreenDesktop> {
       child: Column(
         children: [
           const SizedBox(height: 40),
-          const Text(
-            "Notes",
+          Text(
+            "notes".tr(),
             style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 20),
@@ -68,11 +71,11 @@ class _NotesScreenDesktopState extends NotesScreenBase<NotesScreenDesktop> {
               children: [
                 _buildSidebarItem(
                   icon: Icons.list,
-                  title: "All Notes",
+                  title: "all_notes",
                   count: totalCount,
                   onTap: () async {
-                    setState(() => selectedSidebarItem = 'All Notes');
-                    _updateWindowTitle('All Notes'); // تحديث العنوان
+                    setState(() => selectedSidebarItem = 'all_notes');
+                    _updateWindowTitle('all_notes'); // تحديث العنوان
                     await FilterService.saveLastFilter('all');
                     print('All Notes tapped, loading all notes...');
                     final filter = await FilterService.getLastFilter();
@@ -82,11 +85,11 @@ class _NotesScreenDesktopState extends NotesScreenBase<NotesScreenDesktop> {
                 ),
                 _buildSidebarItem(
                   icon: Icons.today,
-                  title: "Today",
+                  title: "today",
                   count: todayCount,
                   onTap: () async {
-                    setState(() => selectedSidebarItem = 'Today');
-                    _updateWindowTitle('Today'); // تحديث العنوان
+                    setState(() => selectedSidebarItem = 'today');
+                    _updateWindowTitle('today'); // تحديث العنوان
                     await FilterService.saveLastFilter('today');
                     print('Today tapped, loading today notes...');
                     final filter = await FilterService.getLastFilter();
@@ -96,11 +99,11 @@ class _NotesScreenDesktopState extends NotesScreenBase<NotesScreenDesktop> {
                 ),
                 _buildSidebarItem(
                   icon: Icons.calendar_view_week,
-                  title: "This Week",
+                  title: "this_week",
                   count: thisWeekCount,
                   onTap: () async {
-                    setState(() => selectedSidebarItem = 'This Week');
-                    _updateWindowTitle('This Week'); // تحديث العنوان
+                    setState(() => selectedSidebarItem = 'this_week');
+                    _updateWindowTitle('this_week'); // تحديث العنوان
                     await FilterService.saveLastFilter('this_week');
                     print('This Week tapped, loading this week notes...');
                     final filter = await FilterService.getLastFilter();
@@ -111,44 +114,44 @@ class _NotesScreenDesktopState extends NotesScreenBase<NotesScreenDesktop> {
                 ),
                 _buildSidebarItem(
                   icon: Icons.calendar_month,
-                  title: "This Month",
+                  title: "this_month",
                   count: thisMonthCount,
                   onTap: () async {
-                    setState(() => selectedSidebarItem = 'This Month');
-                    _updateWindowTitle('This Month'); // تحديث العنوان
+                    setState(() => selectedSidebarItem = 'this_month');
+                    _updateWindowTitle('this_month'); // تحديث العنوان
                     await FilterService.saveLastFilter('this_month');
                     filterThisMonth();
                   },
                 ),
                 _buildSidebarItem(
                   icon: Icons.star,
-                  title: "Important",
+                  title: "important",
                   count: importantCount,
                   onTap: () async {
-                    setState(() => selectedSidebarItem = 'Important');
-                    _updateWindowTitle('Important'); // تحديث العنوان
+                    setState(() => selectedSidebarItem = 'important');
+                    _updateWindowTitle('important'); // تحديث العنوان
                     await FilterService.saveLastFilter('important');
                     filterImportant();
                   },
                 ),
                 _buildSidebarItem(
                   icon: Icons.lock_clock,
-                  title: "Recurring",
+                  title: "recurring",
                   count: recurringCount,
                   onTap: () async {
-                    setState(() => selectedSidebarItem = 'Recurring');
-                    _updateWindowTitle('Recurring'); // تحديث العنوان
+                    setState(() => selectedSidebarItem = 'recurring');
+                    _updateWindowTitle('recurring'); // تحديث العنوان
                     await FilterService.saveLastFilter('recurring');
                     filterRecurring();
                   },
                 ),
                 _buildSidebarItem(
                   icon: Icons.delete,
-                  title: "Trash",
+                  title: "trash",
                   count: trashCount,
                   onTap: () async {
-                    setState(() => selectedSidebarItem = 'Trash');
-                    _updateWindowTitle('Trash'); // تحديث العنوان
+                    setState(() => selectedSidebarItem = 'trash');
+                    _updateWindowTitle('trash'); // تحديث العنوان
                     await FilterService.saveLastFilter('trash');
                     filterTrash();
                   },
@@ -161,9 +164,9 @@ class _NotesScreenDesktopState extends NotesScreenBase<NotesScreenDesktop> {
 
           _buildSidebarItem(
             icon: Icons.settings,
-            title: "Settings",
+            title: "settings.title",
             onTap: () {
-              setState(() => selectedSidebarItem = 'Settings');
+              setState(() => selectedSidebarItem = 'settings');
               // TODO: أضف دالة الإعدادات هنا
             },
           ),
@@ -200,7 +203,7 @@ class _NotesScreenDesktopState extends NotesScreenBase<NotesScreenDesktop> {
           size: 22,
         ),
         title: Text(
-          title,
+          title.tr(),
           style: TextStyle(
             // color: isSelected ? Colors.blue : Colors.grey[800],
             // color: Colors.grey[800],
@@ -251,7 +254,7 @@ class _NotesScreenDesktopState extends NotesScreenBase<NotesScreenDesktop> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  selectedSidebarItem,
+                  selectedSidebarItem.tr(),
                   style: const TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
@@ -281,8 +284,34 @@ class _NotesScreenDesktopState extends NotesScreenBase<NotesScreenDesktop> {
                       ),
                     ),
                     const SizedBox(width: 12),
+                    Material(
+                      color: Theme.of(context).colorScheme.secondaryContainer,
+                      borderRadius: BorderRadius.circular(10),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(10),
+                        onTap: () {
+                          if (context.locale.languageCode == 'en') {
+                            context.setLocale(const Locale('ar'));
+                          } else {
+                            context.setLocale(const Locale('en'));
+                          }
+                        },
+                        child: SizedBox(
+                          height: 40,
+                          width: 40,
+                          child: Center(
+                            child: Icon(
+                              context.locale.languageCode == 'ar'
+                                  ? Icons.language
+                                  : Icons.translate,
+                              size: 20,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
 
-                    
                     SizedBox(
                       height: 40,
                       child: ElevatedButton.icon(
@@ -310,8 +339,8 @@ class _NotesScreenDesktopState extends NotesScreenBase<NotesScreenDesktop> {
                           // loadFilteredNot
                         },
                         icon: const Icon(Icons.add, size: 18),
-                        label: const Text(
-                          'New Note',
+                        label: Text(
+                          'new_note'.tr(),
                           style: TextStyle(fontWeight: FontWeight.w500),
                         ),
                       ),

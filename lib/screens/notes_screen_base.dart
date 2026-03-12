@@ -1,6 +1,7 @@
 import '../services/date_time_services.dart';
 import '../services/filter_service.dart';
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 import '../db/notes_db.dart';
 import '../models/note_model.dart';
@@ -213,7 +214,7 @@ abstract class NotesScreenBase<T extends StatefulWidget> extends State<T> {
             Icon(Icons.note_alt_outlined, size: 64, color: Colors.grey[400]),
             const SizedBox(height: 16),
             Text(
-              'لا توجد ملاحظات',
+              'no_notes'.tr(),
               style: TextStyle(
                 fontSize: 18,
                 color: Colors.grey[600],
@@ -232,6 +233,7 @@ abstract class NotesScreenBase<T extends StatefulWidget> extends State<T> {
 
         return Container(
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+
           // decoration: BoxDecoration(
           //   border: Border(left: 12, color: Colors.grey[300]!),
           //   // ظل خفيف زي Card
@@ -244,17 +246,20 @@ abstract class NotesScreenBase<T extends StatefulWidget> extends State<T> {
           //   //   ),
           //   // ],
           // ),
+          // decoration: BoxDecoration(
+          //   // ✅ Border فقط - بدون boxShadow
+          //   border: Border(
+          //     left: BorderSide(
+          //       color: _getBorderNoteColor(note), // لون الشريط
+          //       width: 8, // عرض الشريط (8 بكسل)
+          //     ),
+          //   ),
+          //   borderRadius: BorderRadius.circular(4),
+          // ),
           decoration: BoxDecoration(
-            // ✅ Border فقط - بدون boxShadow
-            border: Border(
-              left: BorderSide(
-                color: _getBorderNoteColor(note), // لون الشريط
-                width: 8, // عرض الشريط (8 بكسل)
-              ),
+            border: BorderDirectional(
+              start: BorderSide(color: _getBorderNoteColor(note), width: 8),
             ),
-            // ✅ خلفية البطاقة
-            // لون الخلفية حسب الأولوية
-            // ✅ شكل البطاقة مع انحناءات
             borderRadius: BorderRadius.circular(4),
           ),
 
@@ -303,19 +308,22 @@ abstract class NotesScreenBase<T extends StatefulWidget> extends State<T> {
                 final confirm = await showDialog<bool>(
                   context: context,
                   builder: (context) => AlertDialog(
-                    title: const Text('تأكيد الحذف'),
-                    content: const Text('هل أنت متأكد من حذف هذه الملاحظة؟'),
+                    title: Text('delete_note'.tr()),
+                    content: Text('delete_note_confirmation'.tr()),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.pop(context, false),
-                        child: const Text('إلغاء'),
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.green,
+                        ),
+                        child: Text('cancel'.tr()),
                       ),
                       TextButton(
                         onPressed: () => Navigator.pop(context, true),
                         style: TextButton.styleFrom(
                           foregroundColor: Colors.red,
                         ),
-                        child: const Text('حذف'),
+                        child: Text('delete'.tr()),
                       ),
                     ],
                   ),

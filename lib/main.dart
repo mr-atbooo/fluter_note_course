@@ -6,8 +6,11 @@ import 'package:window_manager/window_manager.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'dart:async'; // لإدارة StreamController
 
+import 'package:easy_localization/easy_localization.dart'; // ✅ لإدارة الترجمة
+
 import 'services/notification_scheduler.dart';
 import 'screens/notes_screen.dart';
+import 'services/filter_service.dart';
 
 /// 🔔 Notifications instance
 final FlutterLocalNotificationsPlugin notifications =
@@ -26,7 +29,6 @@ bool get isDesktop =>
 //   playSound: true,
 //   sound: RawResourceAndroidNotificationSound('ding'),
 // );
-
 
 AndroidNotificationChannel androidChannelMobile = AndroidNotificationChannel(
   'notes_channel_mobile_v3',
@@ -68,7 +70,9 @@ Future<void> initNotifications() async {
         >();
 
     // إنشاء القناة
-    await androidImplementation?.createNotificationChannel(androidChannelMobile);
+    await androidImplementation?.createNotificationChannel(
+      androidChannelMobile,
+    );
 
     // 🔔 طلب صلاحية الإشعارات (مهم جداً Android 13+)
     await androidImplementation?.requestNotificationsPermission();
@@ -77,6 +81,7 @@ Future<void> initNotifications() async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await EasyLocalization.ensureInitialized();
 
   /// 🖥️ Desktop-only setup
   if (isDesktop) {
@@ -96,7 +101,7 @@ void main() async {
       backgroundColor: Colors.transparent,
       skipTaskbar: false,
       titleBarStyle: TitleBarStyle.normal,
-      title: 'Notes - All Notes',
+      title: 'notes_all_notes'.tr(), // تعيين العنوان الافتراضي مع الترجمة
       // resizable: true, // مهم: يسمح بتغيير الحجم لكن ضمن الحدود
       // minimizable: true,
       // maximizable: true,
@@ -105,7 +110,7 @@ void main() async {
 
     // await windowManager.setTitle('Notes');
     // تعيين العنوان الافتراضي
-    await windowManager.setTitle('Notes - All Notes');
+    await windowManager.setTitle('notes_all_notes'.tr());
 
     await windowManager.waitUntilReadyToShow(windowOptions, () async {
       await windowManager.show();
@@ -124,7 +129,7 @@ void main() async {
 
     // الاستماع لتغييرات العنوان
     windowTitleController!.stream.listen((title) {
-      windowManager.setTitle('Notes - $title');
+      windowManager.setTitle('${'notes'.tr()} - $title');
     });
   } else {
     // ✅ للموبايل: نستخدم sqflite العادية
@@ -134,7 +139,16 @@ void main() async {
   /// 🔔 Notifications (كل المنصات)
   await initNotifications();
 
-  runApp(MyApp());
+  // runApp(MyApp());
+
+  runApp(
+    EasyLocalization(
+      supportedLocales: const [Locale('en'), Locale('ar')],
+      path: 'assets/translations',
+      fallbackLocale: const Locale('en'),
+      child: MyApp(),
+    ),
+  );
 
   /// ⏰ Scheduler (Desktop + Mobile)
   NotificationScheduler.start();
@@ -187,13 +201,21 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           : ThemeMode.light;
     });
   }
-  
 
   @override
   Widget build(BuildContext context) {
+    // تحديث عنوان النافذة عند تغيير اللغة
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final newTitle = await FilterService.getSharedPreferences('title');
+      windowManager.setTitle("${'notes'.tr()} - ${newTitle.tr()}");
+    });
+
     return MaterialApp(
       title: 'Notes',
       debugShowCheckedModeBanner: false,
+      locale: context.locale,
+      supportedLocales: context.supportedLocales,
+      localizationsDelegates: context.localizationDelegates,
       themeMode: _themeMode,
       theme: ThemeData(
         brightness: Brightness.light,

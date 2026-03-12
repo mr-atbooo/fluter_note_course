@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart'; // ✅ أضف هذا للـ DateFormat
+import 'package:easy_localization/easy_localization.dart'; // ✅ لإدارة الترجمة
 import '../db/notes_db.dart';
 import '../models/note_model.dart';
 import '../services/sound_service.dart';
@@ -90,7 +91,9 @@ class _AddEditNoteScreenState extends State<AddEditNoteScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.note == null ? 'Add Note' : 'Edit Note'),
+        title: Text(
+          widget.note == null ? 'form.add_note'.tr() : 'form.edit_note'.tr(),
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -100,7 +103,7 @@ class _AddEditNoteScreenState extends State<AddEditNoteScreen> {
             TextField(
               controller: titleController,
               decoration: InputDecoration(
-                labelText: 'Title',
+                labelText: 'form.title'.tr(),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(4),
                   borderSide: BorderSide(
@@ -136,7 +139,7 @@ class _AddEditNoteScreenState extends State<AddEditNoteScreen> {
               //   border: OutlineInputBorder(),
               // ),
               decoration: InputDecoration(
-                labelText: 'Content',
+                labelText: 'form.content'.tr(),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(4),
                   borderSide: BorderSide(
@@ -167,7 +170,7 @@ class _AddEditNoteScreenState extends State<AddEditNoteScreen> {
             DropdownButtonFormField<int>(
               value: selectedPriority,
               decoration: InputDecoration(
-                labelText: 'Priority',
+                labelText: 'form.priority.text'.tr(),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(4),
                   borderSide: BorderSide(
@@ -191,10 +194,19 @@ class _AddEditNoteScreenState extends State<AddEditNoteScreen> {
                 ),
                 labelStyle: TextStyle(color: Theme.of(context).primaryColor),
               ),
-              items: const [
-                DropdownMenuItem(value: 1, child: Text('Normal')),
-                DropdownMenuItem(value: 2, child: Text('Medium')),
-                DropdownMenuItem(value: 3, child: Text('High')),
+              items: [
+                DropdownMenuItem(
+                  value: 1,
+                  child: Text('form.priority.normal'.tr()),
+                ),
+                DropdownMenuItem(
+                  value: 2,
+                  child: Text('form.priority.medium'.tr()),
+                ),
+                DropdownMenuItem(
+                  value: 3,
+                  child: Text('form.priority.high'.tr()),
+                ),
               ],
               onChanged: (value) {
                 setState(() {
@@ -213,8 +225,9 @@ class _AddEditNoteScreenState extends State<AddEditNoteScreen> {
                   Expanded(
                     child: Text(
                       publishDate == null
-                          ? 'No date selected'
-                          : 'Date: ${DateFormat('yyyy/MM/dd').format(publishDate!)}',
+                          ? 'form.no_date_selected'.tr()
+                          : '${'form.date'.tr()}: ${DateFormat('yyyy/MM/dd').format(publishDate!)}',
+
                       style: TextStyle(
                         fontSize: 16,
                         color: publishDate == null ? Colors.grey : Colors.black,
@@ -224,7 +237,7 @@ class _AddEditNoteScreenState extends State<AddEditNoteScreen> {
                   TextButton(
                     onPressed: pickPublishDate,
                     child: Text(
-                      'Choose Date',
+                      'form.choose_date'.tr(),
                       style: TextStyle(color: Colors.blue),
                     ),
                   ),
@@ -241,8 +254,8 @@ class _AddEditNoteScreenState extends State<AddEditNoteScreen> {
                 Expanded(
                   child: Text(
                     publishTime == null
-                        ? 'No time selected'
-                        : 'Time: ${DateFormat('hh:mm a').format(publishTime!)}',
+                        ? 'form.no_time_selected'.tr()
+                        : "${'time'.tr()}: ${DateFormat('hh:mm a').format(publishTime!)}",
                     style: TextStyle(
                       fontSize: 16,
                       color: publishTime == null ? Colors.grey : Colors.black,
@@ -252,7 +265,7 @@ class _AddEditNoteScreenState extends State<AddEditNoteScreen> {
                 TextButton(
                   onPressed: pickPublishTime,
                   child: Text(
-                    'Choose Time',
+                    'form.choose_time'.tr(),
                     style: TextStyle(color: Colors.green),
                   ),
                 ),
@@ -341,7 +354,7 @@ class _AddEditNoteScreenState extends State<AddEditNoteScreen> {
                 Navigator.pop(context);
               },
               child: Text(
-                'Save',
+                'form.save'.tr(),
                 style: TextStyle(color: Theme.of(context).primaryColor),
               ),
             ),
@@ -398,8 +411,8 @@ class _AddEditNoteScreenState extends State<AddEditNoteScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'إعدادات التكرار',
+             Text(
+              'form.repeats.settings'.tr(),
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
@@ -409,7 +422,7 @@ class _AddEditNoteScreenState extends State<AddEditNoteScreen> {
               value: repeatType,
 
               decoration: InputDecoration(
-                labelText: 'نوع التكرار',
+                labelText: 'form.repeats.type'.tr(),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(4),
                   borderSide: BorderSide(
@@ -433,12 +446,12 @@ class _AddEditNoteScreenState extends State<AddEditNoteScreen> {
                 ),
                 labelStyle: TextStyle(color: Theme.of(context).primaryColor),
               ),
-              items: const [
-                DropdownMenuItem(value: 'none', child: Text('بدون تكرار')),
-                DropdownMenuItem(value: 'daily', child: Text('يومي')),
-                DropdownMenuItem(value: 'weekly', child: Text('أسبوعي')),
-                DropdownMenuItem(value: 'hourly', child: Text('كل ساعة')),
-                DropdownMenuItem(value: 'custom', child: Text('أيام مخصصة')),
+              items:  [
+                DropdownMenuItem(value: 'none', child: Text('form.repeats.none'.tr())),
+                DropdownMenuItem(value: 'daily', child: Text('form.repeats.daily'.tr())),
+                DropdownMenuItem(value: 'weekly', child: Text('form.repeats.weekly'.tr())),
+                DropdownMenuItem(value: 'hourly', child: Text('form.repeats.hourly'.tr())),
+                DropdownMenuItem(value: 'custom', child: Text('form.repeats.custom_days'.tr())),
               ],
               onChanged: (value) {
                 setState(() {
@@ -454,8 +467,8 @@ class _AddEditNoteScreenState extends State<AddEditNoteScreen> {
             if (repeatType == 'hourly') ...[
               TextFormField(
                 initialValue: repeatInterval.toString(),
-                decoration: const InputDecoration(
-                  labelText: 'التكرار كل (ساعة)',
+                decoration:  InputDecoration(
+                  labelText: 'form.repeats.hourly_repeated'.tr(),
                   border: OutlineInputBorder(),
                 ),
                 keyboardType: TextInputType.number,
@@ -467,18 +480,18 @@ class _AddEditNoteScreenState extends State<AddEditNoteScreen> {
 
             // لأيام التكرار المخصصة
             if (repeatType == 'custom') ...[
-              const Text('اختر أيام التكرار:'),
+               Text('form.repeats.dayes_to_repeat'.tr()),
               const SizedBox(height: 8),
               Wrap(
                 spacing: 8,
                 children: [
-                  _buildDayChip('الإثنين', 1),
-                  _buildDayChip('الثلاثاء', 2),
-                  _buildDayChip('الأربعاء', 3),
-                  _buildDayChip('الخميس', 4),
-                  _buildDayChip('الجمعة', 5),
-                  _buildDayChip('السبت', 6),
-                  _buildDayChip('الأحد', 7),
+                  _buildDayChip('form.repeats.sunday'.tr(), 1),
+                  _buildDayChip('form.repeats.monday'.tr(), 2),
+                  _buildDayChip('form.repeats.tuesday'.tr(), 3),
+                  _buildDayChip('form.repeats.wednesday'.tr(), 4),
+                  _buildDayChip('form.repeats.thursday'.tr(), 5),
+                  _buildDayChip('form.repeats.friday'.tr(), 6),
+                  _buildDayChip('form.repeats.saturday'.tr(), 7),
                 ],
               ),
             ],
@@ -487,7 +500,7 @@ class _AddEditNoteScreenState extends State<AddEditNoteScreen> {
 
             // إعدادات الاهتزاز والصوت
             SwitchListTile(
-              title: const Text('اهتزاز عند الرنين'),
+              title:  Text('form.repeats.vibration_on_ringing'.tr()),
               value: vibrate,
               onChanged: (value) {
                 setState(() {
@@ -503,7 +516,7 @@ class _AddEditNoteScreenState extends State<AddEditNoteScreen> {
               value: sound,
 
               decoration: InputDecoration(
-                labelText: 'اختر الصوت',
+                labelText: 'form.choose_sound'.tr(),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(4),
                   borderSide: BorderSide(
@@ -527,11 +540,11 @@ class _AddEditNoteScreenState extends State<AddEditNoteScreen> {
                 ),
                 labelStyle: TextStyle(color: Theme.of(context).primaryColor),
               ),
-              items: const [
-                DropdownMenuItem(value: 'ding', child: Text('دينج')),
-                DropdownMenuItem(value: 'bell', child: Text('جرس')),
-                DropdownMenuItem(value: 'alarm', child: Text('منبه')),
-                DropdownMenuItem(value: 'notification', child: Text('إشعار')),
+              items:  [
+                DropdownMenuItem(value: 'ding', child: Text('form.ding'.tr())),
+                DropdownMenuItem(value: 'bell', child: Text('form.bell'.tr())),
+                DropdownMenuItem(value: 'alarm', child: Text('form.alarm'.tr())),
+                DropdownMenuItem(value: 'notification', child: Text('form.notification'.tr())),
               ],
               onChanged: (value) {
                 setState(() {
